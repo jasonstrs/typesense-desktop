@@ -54,7 +54,9 @@ A cross-platform desktop application for managing Typesense instances, built wit
 
 - Node.js v22.20.0 (use `.nvmrc` for automatic version management)
 - Rust 1.70+ (for Tauri)
-- macOS 10.15+, Windows 10+, or Linux
+- **macOS**: 10.15+
+- **Windows**: 10+
+- **Linux**: libsecret (usually pre-installed on GNOME/KDE desktops)
 
 ## Getting Started
 
@@ -108,9 +110,13 @@ typesense-desktop/
 
 ## Security
 
-- **API Key Storage**: API keys are stored securely using the OS keychain (macOS Keychain, Windows Credential Manager, Linux Secret Service) with an encrypted fallback store
-- **Local Data**: Connection metadata is stored in encrypted local storage
+- **API Key Storage**: API keys are stored securely using the OS-native credential manager:
+  - macOS: Keychain
+  - Windows: Credential Manager
+  - Linux: Secret Service (libsecret)
+- **Local Data**: Connection metadata (names, URLs) is stored in local storage
 - **No Cloud**: All data stays on your machine - no cloud sync or telemetry
+- **No Fallback**: API keys are only stored in the OS keychain - no file-based fallback for maximum security
 
 ## Development Roadmap
 
@@ -118,10 +124,11 @@ See [TYPESENSE_DESKTOP_PLAN.md](./TYPESENSE_DESKTOP_PLAN.md) for the complete de
 
 **Current Status**: Phase 2 Complete ✅
 
-## Known Issues
+## Platform Support
 
-- macOS keychain has reliability issues in development mode - fallback storage is used as primary
-- Delete operations currently have no confirmation dialog (intentional for testing)
+- **macOS**: ✅ Fully supported (Keychain)
+- **Windows**: ✅ Fully supported (Credential Manager)
+- **Linux**: ✅ Fully supported (Secret Service/libsecret)
 
 ## Contributing
 

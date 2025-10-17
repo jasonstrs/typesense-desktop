@@ -18,12 +18,8 @@ dist-ssr
 # Tauri build outputs
 src-tauri/target
 
-# Local storage files (contains API keys and connections)
-*.json
-!package.json
-!package-lock.json
-!tsconfig*.json
-!vite.config.ts
+# Local storage files (contains connection metadata)
+settings.json
 
 # Editor directories and files
 .vscode/*

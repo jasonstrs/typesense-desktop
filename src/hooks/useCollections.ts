@@ -2,22 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClient } from '@/services/typesense';
 import type { Collection, CollectionCreateRequest } from '@/types/typesense';
 
-export function useCollections() {
+export function useCollections(enabled = true) {
   return useQuery({
     queryKey: ['collections'],
     queryFn: async (): Promise<Collection[]> => {
-      try {
-        const client = getClient();
-        console.log('Fetching collections...');
-        const response = await client.collections().retrieve();
-        console.log('Collections response:', response);
-        return response as Collection[];
-      } catch (error) {
-        console.error('Failed to fetch collections:', error);
-        throw error;
-      }
+      const client = getClient();
+      const response = await client.collections().retrieve();
+      return response as Collection[];
     },
-    enabled: true,
+    enabled,
     retry: 1,
   });
 }
