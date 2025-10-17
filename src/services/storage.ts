@@ -5,7 +5,7 @@ let store: Awaited<ReturnType<typeof load>> | null = null;
 
 async function getStore() {
   if (!store) {
-    store = await load('settings.json', { autoSave: false });
+    store = await load('settings.json', { autoSave: false, defaults: {} });
   }
   return store;
 }
@@ -43,9 +43,12 @@ export async function addConnection(connection: Connection): Promise<void> {
 /**
  * Update an existing connection
  */
-export async function updateConnection(connectionId: string, updates: Partial<Connection>): Promise<void> {
+export async function updateConnection(
+  connectionId: string,
+  updates: Partial<Connection>
+): Promise<void> {
   const connections = await getConnections();
-  const index = connections.findIndex(c => c.id === connectionId);
+  const index = connections.findIndex((c) => c.id === connectionId);
   if (index !== -1) {
     connections[index] = { ...connections[index], ...updates };
     await saveConnections(connections);
@@ -57,7 +60,7 @@ export async function updateConnection(connectionId: string, updates: Partial<Co
  */
 export async function deleteConnection(connectionId: string): Promise<void> {
   const connections = await getConnections();
-  const filtered = connections.filter(c => c.id !== connectionId);
+  const filtered = connections.filter((c) => c.id !== connectionId);
   await saveConnections(filtered);
 }
 
@@ -66,7 +69,7 @@ export async function deleteConnection(connectionId: string): Promise<void> {
  */
 export async function getActiveConnectionId(): Promise<string | null> {
   const s = await getStore();
-  return await s.get<string>(ACTIVE_CONNECTION_KEY);
+  return (await s.get<string>(ACTIVE_CONNECTION_KEY)) || null;
 }
 
 /**
@@ -86,5 +89,5 @@ export async function getActiveConnection(): Promise<Connection | null> {
   if (!activeId) return null;
 
   const connections = await getConnections();
-  return connections.find(c => c.id === activeId) || null;
+  return connections.find((c) => c.id === activeId) || null;
 }

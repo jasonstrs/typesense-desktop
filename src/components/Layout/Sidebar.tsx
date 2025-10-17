@@ -30,7 +30,8 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
                     'hover:bg-accent hover:text-accent-foreground',
-                    activeView === item.id && 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    activeView === item.id &&
+                      'bg-primary text-primary-foreground hover:bg-primary/90'
                   )}
                 >
                   <Icon className="w-5 h-5" />

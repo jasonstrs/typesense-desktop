@@ -73,9 +73,7 @@ export function ConnectionForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {mode === 'create' ? 'Add New Connection' : 'Edit Connection'}
-          </DialogTitle>
+          <DialogTitle>{mode === 'create' ? 'Add New Connection' : 'Edit Connection'}</DialogTitle>
           <DialogDescription>
             Connect to a Typesense instance. Your API key will be stored securely.
           </DialogDescription>

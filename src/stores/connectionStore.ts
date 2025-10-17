@@ -19,7 +19,11 @@ interface ConnectionStore {
   // Actions
   loadConnections: () => Promise<void>;
   addConnection: (connection: Connection, apiKey: string) => Promise<void>;
-  updateConnection: (connectionId: string, updates: Partial<Connection>, apiKey?: string) => Promise<void>;
+  updateConnection: (
+    connectionId: string,
+    updates: Partial<Connection>,
+    apiKey?: string
+  ) => Promise<void>;
   deleteConnection: (connectionId: string) => Promise<void>;
   setActiveConnection: (connectionId: string | null) => Promise<void>;
   getConnectionApiKey: (connectionId: string) => Promise<string>;

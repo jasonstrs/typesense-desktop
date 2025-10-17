@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { useConnectionStore } from "@/stores/connectionStore";
-import { Button } from "@/components/ui/button";
-import { ConnectionForm } from "@/components/ConnectionManager/ConnectionForm";
-import { Plus, Trash2, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { useConnectionStore } from '@/stores/connectionStore';
+import { Button } from '@/components/ui/button';
+import { ConnectionForm } from '@/components/ConnectionManager/ConnectionForm';
+import { Plus, Trash2, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function ConnectionsView() {
   const {
@@ -21,11 +21,7 @@ export function ConnectionsView() {
     loadConnections();
   }, [loadConnections]);
 
-  const handleAddConnection = async (data: {
-    name: string;
-    url: string;
-    apiKey: string;
-  }) => {
+  const handleAddConnection = async (data: { name: string; url: string; apiKey: string }) => {
     try {
       const newConnection = {
         id: crypto.randomUUID(),
@@ -33,9 +29,9 @@ export function ConnectionsView() {
         url: data.url,
       };
       await addConnection(newConnection, data.apiKey);
-      toast.success("Connection added successfully!");
+      toast.success('Connection added successfully!');
     } catch (error) {
-      toast.error("Failed to add connection");
+      toast.error('Failed to add connection');
       throw error;
     }
   };
@@ -43,18 +39,18 @@ export function ConnectionsView() {
   const handleDeleteConnection = async (connectionId: string) => {
     try {
       await deleteConnection(connectionId);
-      toast.success("Connection deleted");
+      toast.success('Connection deleted');
     } catch (error) {
-      toast.error("Failed to delete connection");
+      toast.error('Failed to delete connection');
     }
   };
 
   const handleSetActive = async (connectionId: string) => {
     try {
       await setActiveConnection(connectionId);
-      toast.success("Active connection changed");
+      toast.success('Active connection changed');
     } catch (error) {
-      toast.error("Failed to set active connection");
+      toast.error('Failed to set active connection');
     }
   };
 
@@ -63,9 +59,7 @@ export function ConnectionsView() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Connections</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your Typesense server connections
-          </p>
+          <p className="text-muted-foreground mt-1">Manage your Typesense server connections</p>
         </div>
         <Button onClick={() => setIsFormOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -98,9 +92,7 @@ export function ConnectionsView() {
                 )}
                 <div>
                   <h3 className="font-semibold">{connection.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {connection.url}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{connection.url}</p>
                 </div>
               </div>
               <div className="flex gap-2">

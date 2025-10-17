@@ -73,9 +73,7 @@ export function CollectionsView() {
         <div className="border-2 border-dashed rounded-lg p-12 text-center">
           <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">No Active Connection</h3>
-          <p className="text-muted-foreground mb-4">
-            Please connect to a Typesense instance first
-          </p>
+          <p className="text-muted-foreground mb-4">Please connect to a Typesense instance first</p>
           <Button onClick={() => window.location.reload()}>Go to Connections</Button>
         </div>
       </div>

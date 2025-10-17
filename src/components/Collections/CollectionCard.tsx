@@ -44,7 +44,8 @@ export function CollectionCard({ collection, onView, onDelete }: CollectionCardP
           {collection.default_sorting_field && (
             <div>
               <p className="text-sm text-muted-foreground">
-                Default sort: <span className="font-medium">{collection.default_sorting_field}</span>
+                Default sort:{' '}
+                <span className="font-medium">{collection.default_sorting_field}</span>
               </p>
             </div>
           )}
@@ -58,11 +59,7 @@ export function CollectionCard({ collection, onView, onDelete }: CollectionCardP
               <Eye className="w-4 h-4 mr-2" />
               View Details
             </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete(collection.name)}
-            >
+            <Button variant="destructive" size="sm" onClick={() => onDelete(collection.name)}>
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>

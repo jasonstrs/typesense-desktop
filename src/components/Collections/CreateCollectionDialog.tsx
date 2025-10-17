@@ -28,18 +28,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
-import type { CollectionCreateRequest } from '@/types/typesense';
+import type { CollectionCreateRequest, CollectionField } from '@/types/typesense';
 
 const fieldSchema = z.object({
   name: z.string().min(1, 'Field name is required'),
   type: z.string().min(1, 'Type is required'),
-  facet: z.boolean().default(false),
-  optional: z.boolean().default(false),
-  index: z.boolean().default(true),
+  facet: z.boolean().optional(),
+  optional: z.boolean().optional(),
+  index: z.boolean().optional(),
 });
 
 const collectionSchema = z.object({
-  name: z.string().min(1, 'Collection name is required').regex(/^[a-zA-Z0-9_-]+$/, 'Only alphanumeric, underscore, and hyphen allowed'),
+  name: z
+    .string()
+    .min(1, 'Collection name is required')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Only alphanumeric, underscore, and hyphen allowed'),
   fields: z.array(fieldSchema).min(1, 'At least one field is required'),
   default_sorting_field: z.string().optional(),
 });
@@ -81,9 +84,7 @@ export function CreateCollectionDialog({
     resolver: zodResolver(collectionSchema),
     defaultValues: {
       name: '',
-      fields: [
-        { name: 'id', type: 'string', facet: false, optional: false, index: true },
-      ],
+      fields: [{ name: 'id', type: 'string', index: true }],
       default_sorting_field: '',
     },
   });
@@ -96,9 +97,21 @@ export function CreateCollectionDialog({
   const handleSubmit = async (data: CollectionFormData) => {
     setIsSubmitting(true);
     try {
+      // Clean up fields by removing undefined optional properties
+      const cleanedFields = data.fields.map((field) => {
+        const cleanField: CollectionField = {
+          name: field.name,
+          type: field.type,
+        };
+        if (field.facet !== undefined) cleanField.facet = field.facet;
+        if (field.optional !== undefined) cleanField.optional = field.optional;
+        if (field.index !== undefined) cleanField.index = field.index;
+        return cleanField;
+      });
+
       const request: CollectionCreateRequest = {
         name: data.name,
-        fields: data.fields,
+        fields: cleanedFields,
       };
 
       if (data.default_sorting_field) {
@@ -147,9 +160,7 @@ export function CreateCollectionDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    append({ name: '', type: 'string', facet: false, optional: false, index: true })
-                  }
+                  onClick={() => append({ name: '', type: 'string', index: true })}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Field

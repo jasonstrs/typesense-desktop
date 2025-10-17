@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+dist-ssr
+build
+
+# Tauri
+src-tauri/target
+src-tauri/Cargo.lock
+
+# Locks
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Cache
+.cache
+.parcel-cache
+
+# Misc
+.DS_Store
+*.log

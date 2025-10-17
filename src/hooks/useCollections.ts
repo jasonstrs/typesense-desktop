@@ -33,7 +33,7 @@ export function useCreateCollection() {
   return useMutation({
     mutationFn: async (schema: CollectionCreateRequest) => {
       const client = getClient();
-      return await client.collections().create(schema);
+      return await client.collections().create(schema as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collections'] });
@@ -67,7 +67,7 @@ export function useUpdateCollection() {
       schema: Partial<CollectionCreateRequest>;
     }) => {
       const client = getClient();
-      return await client.collections(collectionName).update(schema);
+      return await client.collections(collectionName).update(schema as any);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['collections'] });

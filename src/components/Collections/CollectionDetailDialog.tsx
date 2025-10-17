@@ -1,6 +1,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useCollection } from '@/hooks/useCollections';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, X } from 'lucide-react';
@@ -103,9 +110,7 @@ export function CollectionDetailDialog({
             </div>
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            Collection not found
-          </div>
+          <div className="text-center py-8 text-muted-foreground">Collection not found</div>
         )}
       </DialogContent>
     </Dialog>
