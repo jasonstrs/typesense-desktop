@@ -1,11 +1,11 @@
-import { Collection } from '@/types/typesense';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Trash2 } from 'lucide-react';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 interface CollectionCardProps {
-  collection: Collection;
+  collection: CollectionSchema;
   onView: (collectionName: string) => void;
   onDelete: (collectionName: string) => void;
 }

@@ -9,7 +9,7 @@ import { CollectionDetailDialog } from '@/components/Collections/CollectionDetai
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Database, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import type { CollectionCreateRequest } from '@/types/typesense';
+import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 
 export function CollectionsView() {
   const { activeConnectionId, connections, getConnectionApiKey } = useConnectionStore();
@@ -47,7 +47,7 @@ export function CollectionsView() {
   // Only fetch collections when client is ready
   const { data: collections, isLoading, error, refetch } = useCollections(isClientReady);
 
-  const handleCreateCollection = async (data: CollectionCreateRequest) => {
+  const handleCreateCollection = async (data: CollectionCreateSchema) => {
     try {
       await createCollection.mutateAsync(data);
       toast.success(`Collection "${data.name}" created successfully!`);

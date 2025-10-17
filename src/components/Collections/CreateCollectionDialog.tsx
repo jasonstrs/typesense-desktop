@@ -28,11 +28,36 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
-import type { CollectionCreateRequest, CollectionField } from '@/types/typesense';
+import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import { CollectionFieldSchema } from 'typesense/lib/Typesense/Collection';
+
+const FIELD_TYPES = [
+  'string',
+  'int32',
+  'int64',
+  'float',
+  'bool',
+  'geopoint',
+  'geopolygon',
+  'geopoint[]',
+  'string[]',
+  'int32[]',
+  'int64[]',
+  'float[]',
+  'bool[]',
+  'object',
+  'object[]',
+  'auto',
+  'string*',
+  'image',
+] as const;
+
+export type FieldType = (typeof FIELD_TYPES)[number];
+export const FieldTypeSchema = z.enum(FIELD_TYPES);
 
 const fieldSchema = z.object({
   name: z.string().min(1, 'Field name is required'),
-  type: z.string().min(1, 'Type is required'),
+  type: FieldTypeSchema,
   facet: z.boolean().optional(),
   optional: z.boolean().optional(),
   index: z.boolean().optional(),
@@ -52,26 +77,8 @@ type CollectionFormData = z.infer<typeof collectionSchema>;
 interface CreateCollectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CollectionCreateRequest) => Promise<void>;
+  onSubmit: (data: CollectionCreateSchema) => Promise<void>;
 }
-
-const FIELD_TYPES = [
-  'string',
-  'int32',
-  'int64',
-  'float',
-  'bool',
-  'string[]',
-  'int32[]',
-  'int64[]',
-  'float[]',
-  'bool[]',
-  'auto',
-  'geopoint',
-  'geopoint[]',
-  'object',
-  'object[]',
-];
 
 export function CreateCollectionDialog({
   open,
@@ -99,7 +106,7 @@ export function CreateCollectionDialog({
     try {
       // Clean up fields by removing undefined optional properties
       const cleanedFields = data.fields.map((field) => {
-        const cleanField: CollectionField = {
+        const cleanField: CollectionFieldSchema = {
           name: field.name,
           type: field.type,
         };
@@ -109,7 +116,7 @@ export function CreateCollectionDialog({
         return cleanField;
       });
 
-      const request: CollectionCreateRequest = {
+      const request: CollectionCreateSchema = {
         name: data.name,
         fields: cleanedFields,
       };

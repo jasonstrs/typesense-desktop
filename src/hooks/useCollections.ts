@@ -1,14 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClient } from '@/services/typesense';
-import type { Collection, CollectionCreateRequest } from '@/types/typesense';
+import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 export function useCollections(enabled = true) {
   return useQuery({
     queryKey: ['collections'],
-    queryFn: async (): Promise<Collection[]> => {
+    queryFn: async (): Promise<CollectionSchema[]> => {
       const client = getClient();
       const response = await client.collections().retrieve();
-      return response as Collection[];
+      return response;
     },
     enabled,
     retry: 1,
@@ -18,10 +19,10 @@ export function useCollections(enabled = true) {
 export function useCollection(collectionName: string) {
   return useQuery({
     queryKey: ['collection', collectionName],
-    queryFn: async (): Promise<Collection> => {
+    queryFn: async (): Promise<CollectionSchema> => {
       const client = getClient();
       const response = await client.collections(collectionName).retrieve();
-      return response as Collection;
+      return response;
     },
     enabled: !!collectionName,
   });
@@ -31,7 +32,7 @@ export function useCreateCollection() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (schema: CollectionCreateRequest) => {
+    mutationFn: async (schema: CollectionCreateSchema) => {
       const client = getClient();
       return await client.collections().create(schema as any);
     },
@@ -64,7 +65,7 @@ export function useUpdateCollection() {
       schema,
     }: {
       collectionName: string;
-      schema: Partial<CollectionCreateRequest>;
+      schema: Partial<CollectionCreateSchema>;
     }) => {
       const client = getClient();
       return await client.collections(collectionName).update(schema as any);
