@@ -19,22 +19,21 @@ async function getApiKeyStore() {
 export async function setApiKey(connectionId: string, apiKey: string): Promise<void> {
   console.log('Storing API key for connection:', connectionId);
 
-  // Always store in fallback as well (keychain is unreliable on macOS in dev mode)
-  const store = await getApiKeyStore();
-  await store.set(connectionId, apiKey);
-  await store.save();
-  console.log('API key stored in fallback storage');
-
   try {
-    // Also try keychain
+    // Try keychain first (should work with apple-native feature)
     await invoke('keyring_set', {
       service: SERVICE_NAME,
       account: connectionId,
       password: apiKey,
     });
-    console.log('API key also stored in keychain');
+    console.log('API key stored in keychain');
   } catch (error) {
-    console.warn('Keychain storage failed (fallback already saved):', error);
+    console.warn('Keychain storage failed, using fallback:', error);
+    // Fallback to encrypted store if keychain fails
+    const store = await getApiKeyStore();
+    await store.set(connectionId, apiKey);
+    await store.save();
+    console.log('API key stored in fallback storage');
   }
 }
 
@@ -44,15 +43,7 @@ export async function setApiKey(connectionId: string, apiKey: string): Promise<v
 export async function getApiKey(connectionId: string): Promise<string> {
   console.log('Retrieving API key for connection:', connectionId);
 
-  // Try fallback first (more reliable)
-  const store = await getApiKeyStore();
-  const key = await store.get<string>(connectionId);
-  if (key) {
-    console.log('API key retrieved from fallback storage');
-    return key;
-  }
-
-  // Try keychain as backup
+  // Try keychain first (should work with apple-native feature)
   try {
     const keychainKey = await invoke('keyring_get', {
       service: SERVICE_NAME,
@@ -61,7 +52,15 @@ export async function getApiKey(connectionId: string): Promise<string> {
     console.log('API key retrieved from keychain');
     return keychainKey as string;
   } catch (error) {
-    console.error('Failed to retrieve API key from both fallback and keychain');
+    console.warn('Keychain retrieval failed, trying fallback:', error);
+    // Try fallback storage
+    const store = await getApiKeyStore();
+    const key = await store.get<string>(connectionId);
+    if (key) {
+      console.log('API key retrieved from fallback storage');
+      return key;
+    }
+    console.error('Failed to retrieve API key from both keychain and fallback');
     throw new Error('API key not found');
   }
 }
