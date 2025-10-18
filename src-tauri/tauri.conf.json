@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "typesense-desktop",
+  "productName": "Typesense Desktop",
   "version": "0.1.0",
   "identifier": "com.typesense.desktop",
   "build": {
