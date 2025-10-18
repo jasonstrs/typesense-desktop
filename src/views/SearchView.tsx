@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useCollections } from '@/hooks/useCollections';
 import { useSearch } from '@/hooks/useSearch';
+import { useDebounce } from '@/hooks/useDebounce';
 import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +35,10 @@ export function SearchView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [executeSearch, setExecuteSearch] = useState(false);
   const perPage = 25;
+
+  // Debounce search query and filters
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const debouncedFilterBy = useDebounce(filterBy, 500);
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
 
@@ -78,15 +83,28 @@ export function SearchView() {
     }
   }, [selectedCollection, collectionFields.length]);
 
+  // Auto-trigger search when debounced values change (if search was already executed)
+  useEffect(() => {
+    if (executeSearch && debouncedSearchQuery !== searchQuery) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearchQuery]);
+
+  useEffect(() => {
+    if (executeSearch && debouncedFilterBy !== filterBy) {
+      setCurrentPage(1);
+    }
+  }, [debouncedFilterBy]);
+
   const {
     data: searchResponse,
     isLoading: isSearching,
     error: searchError,
   } = useSearch({
     collectionName: selectedCollection,
-    searchQuery,
+    searchQuery: debouncedSearchQuery,
     queryBy: queryByFields,
-    filterBy: filterBy || undefined,
+    filterBy: debouncedFilterBy || undefined,
     sortBy: sortBy.length > 0 ? sortBy : undefined,
     page: currentPage,
     perPage,
