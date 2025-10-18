@@ -194,13 +194,15 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
 
   testConnection: async (url, apiKey) => {
     try {
-      // Simple test: try to fetch Typesense health endpoint
-      const response = await fetch(`${url}/health`, {
+      // Test with /collections endpoint which requires authentication
+      const response = await fetch(`${url}/collections`, {
         headers: {
           'X-TYPESENSE-API-KEY': apiKey,
         },
       });
-      return response.ok;
+      // Return true only if we get a 200 OK response
+      // 401 means bad API key, other errors mean connection issues
+      return response.status === 200;
     } catch {
       return false;
     }

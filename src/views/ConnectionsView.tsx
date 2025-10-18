@@ -139,7 +139,7 @@ export function ConnectionsView() {
                   {testingConnectionId === connection.id && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}
-                  Test
+                  Test Connection
                 </Button>
                 {activeConnectionId !== connection.id && (
                   <Button
