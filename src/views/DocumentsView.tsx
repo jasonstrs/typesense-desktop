@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DocumentDialog } from '@/components/Documents/DocumentDialog';
-import { Plus, AlertCircle, ChevronLeft, ChevronRight, Pencil, Trash2, Filter } from 'lucide-react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Plus, AlertCircle, ChevronLeft, ChevronRight, Pencil, Trash2, Filter, CheckSquare, Square } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DocumentsView() {
@@ -35,6 +36,15 @@ export function DocumentsView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Record<string, any> | null>(null);
+
+  // Bulk operations state
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
+  // Confirmation dialog state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,8 +138,14 @@ export function DocumentsView() {
       setSortBy([]);
       setSearchQuery('');
       setCurrentPage(1);
+      setSelectedDocIds(new Set()); // Clear selection when collection changes
     }
   }, [selectedCollection, selectedCollectionData]);
+
+  // Clear selection when page changes
+  useEffect(() => {
+    setSelectedDocIds(new Set());
+  }, [currentPage]);
 
   // Browse mode - fetch documents (when no search query)
   const {
@@ -163,13 +179,21 @@ export function DocumentsView() {
   const createDocument = useCreateDocument(selectedCollection);
   const updateDocument = useUpdateDocument(selectedCollection);
 
-  const handleDeleteDocument = async (documentId: string) => {
+  const handleDeleteDocument = async () => {
+    if (!documentToDelete) return;
+
     try {
-      await deleteDocument.mutateAsync(documentId);
+      await deleteDocument.mutateAsync(documentToDelete);
       toast.success('Document deleted successfully');
+      setDocumentToDelete(null);
     } catch (error: any) {
       toast.error(error?.message || 'Failed to delete document');
     }
+  };
+
+  const openDeleteConfirm = (documentId: string) => {
+    setDocumentToDelete(documentId);
+    setDeleteConfirmOpen(true);
   };
 
   const handleAddDocument = async (document: Record<string, any>) => {
@@ -190,6 +214,57 @@ export function DocumentsView() {
     } catch (error: any) {
       toast.error(error?.message || 'Failed to update document');
       throw error;
+    }
+  };
+
+  const handleToggleDocSelection = (docId: string) => {
+    setSelectedDocIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(docId)) {
+        newSet.delete(docId);
+      } else {
+        newSet.add(docId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    if (selectedDocIds.size === documents.length && documents.length > 0) {
+      setSelectedDocIds(new Set());
+    } else {
+      setSelectedDocIds(new Set(documents.map((doc) => doc.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedDocIds.size === 0) return;
+
+    setIsBulkDeleting(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      for (const docId of Array.from(selectedDocIds)) {
+        try {
+          await deleteDocument.mutateAsync(docId);
+          successCount++;
+        } catch (error) {
+          failCount++;
+          console.error(`Failed to delete document ${docId}:`, error);
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Successfully deleted ${successCount} document(s)`);
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to delete ${failCount} document(s)`);
+      }
+
+      setSelectedDocIds(new Set());
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -291,7 +366,7 @@ export function DocumentsView() {
   };
 
   return (
-    <div className="max-w-7xl h-full flex flex-col">
+    <div className="h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Documents</h1>
@@ -376,6 +451,31 @@ export function DocumentsView() {
         </div>
       )}
 
+      {/* Bulk actions toolbar */}
+      {selectedDocIds.size > 0 && (
+        <div className="mb-4 border rounded-lg p-4 bg-muted/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <p className="text-sm font-medium">
+                {selectedDocIds.size} document{selectedDocIds.size > 1 ? 's' : ''} selected
+              </p>
+              <Button variant="outline" size="sm" onClick={handleToggleSelectAll}>
+                Deselect All
+              </Button>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setBulkDeleteConfirmOpen(true)}
+              disabled={isBulkDeleting}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {isBulkDeleting ? 'Deleting...' : `Delete ${selectedDocIds.size}`}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto">
         {!selectedCollection ? (
           <div className="border-2 border-dashed rounded-lg p-12 text-center">
@@ -421,20 +521,53 @@ export function DocumentsView() {
           </div>
         ) : (
           <div className="space-y-4 pb-4">
-            {isSearchActive && searchResponse && (
+            {documents.length > 0 && (
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-muted-foreground">
-                  Found {searchResponse.found} documents in {searchResponse.search_time_ms}ms
-                </p>
+                {isSearchActive && searchResponse ? (
+                  <p className="text-sm text-muted-foreground">
+                    Found {searchResponse.found} documents in {searchResponse.search_time_ms}ms
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Showing {documents.length} documents
+                  </p>
+                )}
+                <Button variant="outline" size="sm" onClick={handleToggleSelectAll}>
+                  {selectedDocIds.size === documents.length && documents.length > 0 ? (
+                    <>
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      Deselect All
+                    </>
+                  ) : (
+                    <>
+                      <Square className="w-4 h-4 mr-2" />
+                      Select All
+                    </>
+                  )}
+                </Button>
               </div>
             )}
             {isSearchActive && results
               ? results.map((hit, index) => (
                   <div
                     key={hit.document.id || index}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                    className={`border rounded-lg p-4 transition-shadow ${
+                      selectedDocIds.has(hit.document.id)
+                        ? 'border-primary bg-primary/5'
+                        : 'hover:shadow-md'
+                    }`}
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start gap-4">
+                      <button
+                        onClick={() => handleToggleDocSelection(hit.document.id)}
+                        className="flex-shrink-0 mt-1"
+                      >
+                        {selectedDocIds.has(hit.document.id) ? (
+                          <CheckSquare className="w-5 h-5 text-primary" />
+                        ) : (
+                          <Square className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                        )}
+                      </button>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-mono text-xs text-muted-foreground">
@@ -476,7 +609,7 @@ export function DocumentsView() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteDocument(hit.document.id)}
+                          onClick={() => openDeleteConfirm(hit.document.id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -487,9 +620,21 @@ export function DocumentsView() {
               : documents.map((doc) => (
                   <div
                     key={doc.id}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                    className={`border rounded-lg p-4 transition-shadow ${
+                      selectedDocIds.has(doc.id) ? 'border-primary bg-primary/5' : 'hover:shadow-md'
+                    }`}
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start gap-4">
+                      <button
+                        onClick={() => handleToggleDocSelection(doc.id)}
+                        className="flex-shrink-0 mt-1"
+                      >
+                        {selectedDocIds.has(doc.id) ? (
+                          <CheckSquare className="w-5 h-5 text-primary" />
+                        ) : (
+                          <Square className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                        )}
+                      </button>
                       <div className="flex-1">
                         <div className="font-mono text-sm text-muted-foreground mb-2">
                           ID: {doc.id}
@@ -505,7 +650,7 @@ export function DocumentsView() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteDocument(doc.id)}
+                          onClick={() => openDeleteConfirm(doc.id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -534,6 +679,26 @@ export function DocumentsView() {
         initialData={editingDocument || undefined}
         mode="edit"
         collectionName={selectedCollection}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDeleteDocument}
+        title="Delete Document"
+        description={`Are you sure you want to delete document "${documentToDelete}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={bulkDeleteConfirmOpen}
+        onOpenChange={setBulkDeleteConfirmOpen}
+        onConfirm={handleBulkDelete}
+        title="Delete Multiple Documents"
+        description={`Are you sure you want to delete ${selectedDocIds.size} document(s)? This action cannot be undone.`}
+        confirmText={`Delete ${selectedDocIds.size}`}
+        variant="destructive"
       />
     </div>
   );

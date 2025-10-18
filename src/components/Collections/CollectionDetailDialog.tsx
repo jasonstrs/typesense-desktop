@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { useCollection } from '@/hooks/useCollections';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, X } from 'lucide-react';
+import { Check, X, BarChart3 } from 'lucide-react';
 
 interface CollectionDetailDialogProps {
   collectionName: string | null;
@@ -29,7 +29,7 @@ export function CollectionDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="!max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{collectionName}</DialogTitle>
         </DialogHeader>
@@ -41,28 +41,83 @@ export function CollectionDetailDialog({
           </div>
         ) : collection ? (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Documents</p>
+            {/* Stats Overview */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="border rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Documents</p>
                 <p className="text-2xl font-bold">{collection.num_documents.toLocaleString()}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Created</p>
+              <div className="border rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Fields</p>
+                <p className="text-2xl font-bold">{collection.fields?.length || 0}</p>
+              </div>
+              <div className="border rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Created</p>
                 <p className="text-2xl font-bold">
                   {new Date(collection.created_at * 1000).toLocaleDateString()}
                 </p>
               </div>
             </div>
 
-            {collection.default_sorting_field && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Default Sorting Field</p>
-                <Badge variant="secondary">{collection.default_sorting_field}</Badge>
+            {/* Field Type Distribution */}
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 className="w-4 h-4" />
+                <h3 className="font-semibold">Field Type Distribution</h3>
               </div>
-            )}
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(
+                  collection.fields.reduce((acc, field) => {
+                    acc[field.type] = (acc[field.type] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>)
+                ).map(([type, count]) => (
+                  <Badge key={type} variant="secondary">
+                    {type}: {count}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Collection Configuration */}
+            <div className="border rounded-lg p-4">
+              <h3 className="font-semibold mb-3">Configuration</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {collection.default_sorting_field && (
+                  <div>
+                    <p className="text-muted-foreground">Default Sorting Field</p>
+                    <Badge variant="secondary" className="mt-1">
+                      {collection.default_sorting_field}
+                    </Badge>
+                  </div>
+                )}
+                {collection.token_separators && collection.token_separators.length > 0 && (
+                  <div>
+                    <p className="text-muted-foreground">Token Separators</p>
+                    <p className="font-medium mt-1">
+                      {collection.token_separators.map((sep) => `"${sep}"`).join(', ')}
+                    </p>
+                  </div>
+                )}
+                {collection.symbols_to_index && collection.symbols_to_index.length > 0 && (
+                  <div>
+                    <p className="text-muted-foreground">Indexed Symbols</p>
+                    <p className="font-medium mt-1">
+                      {collection.symbols_to_index.map((sym) => `"${sym}"`).join(', ')}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-muted-foreground">Enable Nested Fields</p>
+                  <p className="font-medium mt-1">
+                    {collection.enable_nested_fields ? 'Yes' : 'No'}
+                  </p>
+                </div>
+              </div>
+            </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-4">Schema</h3>
+              <h3 className="text-lg font-semibold mb-4">Schema ({collection.fields.length} fields)</h3>
               <div className="border rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>

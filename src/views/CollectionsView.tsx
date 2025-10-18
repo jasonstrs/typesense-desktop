@@ -6,6 +6,7 @@ import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
 import { CreateCollectionDialog } from '@/components/Collections/CreateCollectionDialog';
 import { CollectionDetailDialog } from '@/components/Collections/CollectionDetailDialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Database, AlertCircle, Trash2, Eye, FileText } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,6 +33,8 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [isClientReady, setIsClientReady] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [collectionToDelete, setCollectionToDelete] = useState<string | null>(null);
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
 
@@ -70,13 +73,21 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
     }
   };
 
-  const handleDeleteCollection = async (collectionName: string) => {
+  const handleDeleteCollection = async () => {
+    if (!collectionToDelete) return;
+
     try {
-      await deleteCollection.mutateAsync(collectionName);
-      toast.success(`Collection "${collectionName}" deleted`);
+      await deleteCollection.mutateAsync(collectionToDelete);
+      toast.success(`Collection "${collectionToDelete}" deleted`);
+      setCollectionToDelete(null);
     } catch (error: any) {
       toast.error(error?.message || 'Failed to delete collection');
     }
+  };
+
+  const openDeleteConfirm = (collectionName: string) => {
+    setCollectionToDelete(collectionName);
+    setDeleteConfirmOpen(true);
   };
 
   const handleViewDocuments = (collectionName: string) => {
@@ -99,7 +110,7 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
   }
 
   return (
-    <div className="max-w-7xl">
+    <div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Collections</h1>
@@ -184,15 +195,7 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          if (
-                            confirm(
-                              `Are you sure you want to delete "${collection.name}"? This cannot be undone.`
-                            )
-                          ) {
-                            handleDeleteCollection(collection.name);
-                          }
-                        }}
+                        onClick={() => openDeleteConfirm(collection.name)}
                         title="Delete Collection"
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
@@ -216,6 +219,16 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
         collectionName={selectedCollection}
         open={!!selectedCollection}
         onOpenChange={(open) => !open && setSelectedCollection(null)}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDeleteCollection}
+        title="Delete Collection"
+        description={`Are you sure you want to delete collection "${collectionToDelete}"? This will delete all documents in the collection and cannot be undone.`}
+        confirmText="Delete Collection"
+        variant="destructive"
       />
     </div>
   );

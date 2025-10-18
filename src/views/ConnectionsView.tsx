@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { Button } from '@/components/ui/button';
 import { ConnectionForm } from '@/components/ConnectionManager/ConnectionForm';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Plus, Trash2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -16,6 +17,11 @@ export function ConnectionsView() {
   } = useConnectionStore();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [connectionToDelete, setConnectionToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   useEffect(() => {
     loadConnections();
@@ -36,13 +42,21 @@ export function ConnectionsView() {
     }
   };
 
-  const handleDeleteConnection = async (connectionId: string) => {
+  const handleDeleteConnection = async () => {
+    if (!connectionToDelete) return;
+
     try {
-      await deleteConnection(connectionId);
+      await deleteConnection(connectionToDelete.id);
       toast.success('Connection deleted');
+      setConnectionToDelete(null);
     } catch (error) {
       toast.error('Failed to delete connection');
     }
+  };
+
+  const openDeleteConfirm = (connectionId: string, connectionName: string) => {
+    setConnectionToDelete({ id: connectionId, name: connectionName });
+    setDeleteConfirmOpen(true);
   };
 
   const handleSetActive = async (connectionId: string) => {
@@ -55,7 +69,7 @@ export function ConnectionsView() {
   };
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Connections</h1>
@@ -108,7 +122,7 @@ export function ConnectionsView() {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDeleteConnection(connection.id)}
+                  onClick={() => openDeleteConfirm(connection.id, connection.name)}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -122,6 +136,16 @@ export function ConnectionsView() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSubmit={handleAddConnection}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDeleteConnection}
+        title="Delete Connection"
+        description={`Are you sure you want to delete connection "${connectionToDelete?.name}"? This will remove the saved API key and connection details.`}
+        confirmText="Delete Connection"
+        variant="destructive"
       />
     </div>
   );

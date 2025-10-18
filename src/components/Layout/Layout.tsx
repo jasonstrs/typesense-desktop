@@ -14,7 +14,9 @@ export function Layout({ children, activeView, onViewChange }: LayoutProps) {
       <Sidebar activeView={activeView} onViewChange={onViewChange} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-auto p-6 bg-background">{children}</main>
+        <main className="flex-1 overflow-auto bg-background">
+          <div className="p-6 max-w-7xl mx-auto">{children}</div>
+        </main>
       </div>
     </div>
   );
