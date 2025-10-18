@@ -3,13 +3,20 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useCollections, useCreateCollection, useDeleteCollection } from '@/hooks/useCollections';
 import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
-import { CollectionCard } from '@/components/Collections/CollectionCard';
 import { CreateCollectionDialog } from '@/components/Collections/CreateCollectionDialog';
 import { CollectionDetailDialog } from '@/components/Collections/CollectionDetailDialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Database, AlertCircle } from 'lucide-react';
+import { Plus, Database, AlertCircle, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 export function CollectionsView() {
   const { activeConnectionId, connections, getConnectionApiKey } = useConnectionStore();
@@ -96,9 +103,9 @@ export function CollectionsView() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-2">
           {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-64" />
+            <Skeleton key={i} className="h-16" />
           ))}
         </div>
       ) : error ? (
@@ -123,15 +130,58 @@ export function CollectionsView() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {collections?.map((collection) => (
-            <CollectionCard
-              key={collection.name}
-              collection={collection}
-              onView={setSelectedCollection}
-              onDelete={handleDeleteCollection}
-            />
-          ))}
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Documents</TableHead>
+                <TableHead>Fields</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {collections?.map((collection) => (
+                <TableRow key={collection.name}>
+                  <TableCell className="font-medium">{collection.name}</TableCell>
+                  <TableCell>{collection.num_documents.toLocaleString()}</TableCell>
+                  <TableCell>{collection.fields?.length || 0} fields</TableCell>
+                  <TableCell>
+                    {collection.created_at
+                      ? new Date(collection.created_at * 1000).toLocaleDateString()
+                      : 'N/A'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedCollection(collection.name)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `Are you sure you want to delete "${collection.name}"? This cannot be undone.`
+                            )
+                          ) {
+                            handleDeleteCollection(collection.name);
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
 
