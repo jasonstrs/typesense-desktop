@@ -3,7 +3,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { Button } from '@/components/ui/button';
 import { ConnectionForm } from '@/components/ConnectionManager/ConnectionForm';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Plus, Trash2, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function ConnectionsView() {
@@ -14,6 +14,8 @@ export function ConnectionsView() {
     addConnection,
     deleteConnection,
     setActiveConnection,
+    testConnection,
+    getConnectionApiKey,
   } = useConnectionStore();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -22,6 +24,7 @@ export function ConnectionsView() {
     id: string;
     name: string;
   } | null>(null);
+  const [testingConnectionId, setTestingConnectionId] = useState<string | null>(null);
 
   useEffect(() => {
     loadConnections();
@@ -68,6 +71,23 @@ export function ConnectionsView() {
     }
   };
 
+  const handleTestConnection = async (connectionId: string, url: string) => {
+    setTestingConnectionId(connectionId);
+    try {
+      const apiKey = await getConnectionApiKey(connectionId);
+      const success = await testConnection(url, apiKey);
+      if (success) {
+        toast.success('Connection successful!');
+      } else {
+        toast.error('Connection failed. Please check your configuration.');
+      }
+    } catch (error) {
+      toast.error('Failed to test connection');
+    } finally {
+      setTestingConnectionId(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -110,6 +130,17 @@ export function ConnectionsView() {
                 </div>
               </div>
               <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleTestConnection(connection.id, connection.url)}
+                  disabled={testingConnectionId === connection.id}
+                >
+                  {testingConnectionId === connection.id && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  Test
+                </Button>
                 {activeConnectionId !== connection.id && (
                   <Button
                     variant="outline"
