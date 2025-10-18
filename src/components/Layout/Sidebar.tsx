@@ -1,4 +1,4 @@
-import { Database, Settings, Server, FileText } from 'lucide-react';
+import { Database, Search, Settings, Server, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -11,6 +11,7 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
     { id: 'connections', label: 'Connections', icon: Server },
     { id: 'collections', label: 'Collections', icon: Database },
     { id: 'documents', label: 'Documents', icon: FileText },
+    { id: 'search', label: 'Search', icon: Search },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 

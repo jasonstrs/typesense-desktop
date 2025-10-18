@@ -7,13 +7,10 @@ import {
   useCreateDocument,
   useUpdateDocument,
 } from '@/hooks/useDocuments';
-import { useSearch } from '@/hooks/useSearch';
-import { useDebounce } from '@/hooks/useDebounce';
 import { useSettings } from '@/hooks/useSettings';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -24,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { DocumentDialog } from '@/components/Documents/DocumentDialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Plus, AlertCircle, ChevronLeft, ChevronRight, Pencil, Trash2, Filter, CheckSquare, Square } from 'lucide-react';
+import { Plus, AlertCircle, ChevronLeft, ChevronRight, Pencil, Trash2, CheckSquare, Square } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DocumentsView() {
@@ -46,20 +43,7 @@ export function DocumentsView() {
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [queryByFields, setQueryByFields] = useState<string[]>([]);
-  const [filterBy, setFilterBy] = useState('');
-  const [sortBy, setSortBy] = useState<string[]>([]);
-
   const perPage = settings.defaultPageSize;
-
-  // Debounce search inputs
-  const debouncedSearchQuery = useDebounce(searchQuery, settings.searchDebounceMs);
-  const debouncedFilterBy = useDebounce(filterBy, settings.searchDebounceMs);
-
-  // Determine if we should use search or browse mode
-  const isSearchActive = searchQuery.trim().length > 0;
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
 
@@ -77,19 +61,6 @@ export function DocumentsView() {
       setCurrentPage(1);
     }
   }, [settings.defaultPageSize]);
-
-  // Reset to page 1 when debounced search values change
-  useEffect(() => {
-    if (isSearchActive && debouncedSearchQuery !== searchQuery) {
-      setCurrentPage(1);
-    }
-  }, [debouncedSearchQuery, isSearchActive, searchQuery]);
-
-  useEffect(() => {
-    if (isSearchActive && debouncedFilterBy !== filterBy) {
-      setCurrentPage(1);
-    }
-  }, [debouncedFilterBy, isSearchActive, filterBy]);
 
   // Initialize Typesense client when active connection changes
   useEffect(() => {
@@ -115,39 +86,20 @@ export function DocumentsView() {
 
   const { data: collections } = useCollections(isClientReady);
 
-  const selectedCollectionData = collections?.find((c) => c.name === selectedCollection);
-  const collectionFields = selectedCollectionData?.fields?.map((field) => field.name) || [];
-
-  // Initialize query fields when collection changes - use all string fields
+  // Reset selection when collection changes
   useEffect(() => {
-    if (selectedCollection && selectedCollectionData) {
-      // Get all searchable fields (string types including string* for auto)
-      const searchableFields =
-        selectedCollectionData.fields
-          ?.filter(
-            (field) =>
-              field.type === 'string' ||
-              field.type === 'string[]' ||
-              field.type === 'string*' ||
-              field.type === 'auto'
-          )
-          .map((field) => field.name) || [];
-
-      setQueryByFields(searchableFields.length > 0 ? searchableFields : collectionFields);
-      setFilterBy('');
-      setSortBy([]);
-      setSearchQuery('');
+    if (selectedCollection) {
       setCurrentPage(1);
-      setSelectedDocIds(new Set()); // Clear selection when collection changes
+      setSelectedDocIds(new Set());
     }
-  }, [selectedCollection, selectedCollectionData]);
+  }, [selectedCollection]);
 
   // Clear selection when page changes
   useEffect(() => {
     setSelectedDocIds(new Set());
   }, [currentPage]);
 
-  // Browse mode - fetch documents (when no search query)
+  // Fetch documents
   const {
     data: documentsResponse,
     isLoading: isLoadingDocuments,
@@ -156,24 +108,8 @@ export function DocumentsView() {
     selectedCollection,
     currentPage,
     perPage,
-    isClientReady && !!selectedCollection && !isSearchActive
+    isClientReady && !!selectedCollection
   );
-
-  // Search mode - fetch search results (when search query is present)
-  const {
-    data: searchResponse,
-    isLoading: isSearching,
-    error: searchError,
-  } = useSearch({
-    collectionName: selectedCollection,
-    searchQuery: debouncedSearchQuery,
-    queryBy: queryByFields,
-    filterBy: debouncedFilterBy || undefined,
-    sortBy: sortBy.length > 0 ? sortBy : undefined,
-    page: currentPage,
-    perPage,
-    enabled: isSearchActive && isClientReady && !!selectedCollection && queryByFields.length > 0,
-  });
 
   const deleteDocument = useDeleteDocument(selectedCollection);
   const createDocument = useCreateDocument(selectedCollection);
@@ -268,15 +204,11 @@ export function DocumentsView() {
     }
   };
 
-  // Determine what data to display based on whether search is active
-  const isLoading = isSearchActive ? isSearching : isLoadingDocuments;
-  const error = isSearchActive ? searchError : documentsError;
-  const results = isSearchActive ? searchResponse?.hits || [] : null;
-  const documents = isSearchActive
-    ? searchResponse?.hits?.map((hit) => hit.document) || []
-    : documentsResponse?.hits?.map((hit) => hit.document) || [];
-  const totalFound = isSearchActive ? searchResponse?.found || 0 : documentsResponse?.found || 0;
-  const totalPages = totalFound > 0 ? Math.ceil(totalFound / perPage) : 0;
+  // Data for display
+  const documents = documentsResponse?.hits?.map((hit) => hit.document) || [];
+  const totalPages = documentsResponse
+    ? Math.ceil(documentsResponse.found / perPage)
+    : 0;
 
   if (!activeConnection) {
     return (
@@ -371,7 +303,7 @@ export function DocumentsView() {
         <div>
           <h1 className="text-3xl font-bold">Documents</h1>
           <p className="text-muted-foreground mt-1">
-            Browse and search documents in {activeConnection.name}
+            Browse and manage documents in {activeConnection.name}
           </p>
         </div>
         <Button disabled={!selectedCollection} onClick={() => setIsAddDialogOpen(true)}>
@@ -395,61 +327,6 @@ export function DocumentsView() {
           </SelectContent>
         </Select>
       </div>
-
-      {/* Search UI - always visible when collection is selected */}
-      {selectedCollection && (
-        <div className="space-y-4 mb-6">
-          {/* Search query */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Search Query (optional)</label>
-            <Input
-              type="text"
-              placeholder="Leave empty to browse all documents, or enter search query..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Searches across all text fields: {queryByFields.join(', ')}
-            </p>
-          </div>
-
-          {/* Advanced options */}
-          <details className="border rounded-lg p-4">
-            <summary className="cursor-pointer font-medium flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              Advanced Options
-            </summary>
-            <div className="mt-4 space-y-4">
-              {/* Filter by */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Filter By (optional)</label>
-                <Input
-                  type="text"
-                  placeholder="e.g., rating:>3 && category:=Books"
-                  value={filterBy}
-                  onChange={(e) => setFilterBy(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground mt-1">Use Typesense filter syntax</p>
-              </div>
-
-              {/* Sort by */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Sort By (optional)</label>
-                <Input
-                  type="text"
-                  placeholder="e.g., rating:desc,name:asc"
-                  value={sortBy.join(',')}
-                  onChange={(e) => setSortBy(e.target.value ? e.target.value.split(',') : [])}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Comma-separated field:order pairs
-                </p>
-              </div>
-            </div>
-          </details>
-        </div>
-      )}
 
       {/* Bulk actions toolbar */}
       {selectedDocIds.size > 0 && (
@@ -485,53 +362,39 @@ export function DocumentsView() {
               Please select a collection to view its documents
             </p>
           </div>
-        ) : isLoading ? (
+        ) : isLoadingDocuments ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-24" />
             ))}
           </div>
-        ) : error ? (
+        ) : documentsError ? (
           <div className="border-2 border-dashed rounded-lg p-12 text-center">
             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
-            <h3 className="text-lg font-semibold mb-2">
-              Failed to {isSearchActive ? 'Search' : 'Load Documents'}
-            </h3>
+            <h3 className="text-lg font-semibold mb-2">Failed to Load Documents</h3>
             <p className="text-muted-foreground mb-4">
-              {error instanceof Error ? error.message : 'An error occurred'}
+              {documentsError instanceof Error ? documentsError.message : 'An error occurred'}
             </p>
           </div>
         ) : documents.length === 0 ? (
           <div className="border-2 border-dashed rounded-lg p-12 text-center">
             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">
-              {isSearchActive ? 'No Results Found' : 'No Documents'}
-            </h3>
+            <h3 className="text-lg font-semibold mb-2">No Documents</h3>
             <p className="text-muted-foreground mb-4">
-              {isSearchActive
-                ? 'Try adjusting your search query or filters'
-                : "This collection doesn't have any documents yet"}
+              This collection doesn't have any documents yet
             </p>
-            {!isSearchActive && (
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add First Document
-              </Button>
-            )}
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add First Document
+            </Button>
           </div>
         ) : (
           <div className="space-y-4 pb-4">
             {documents.length > 0 && (
               <div className="flex items-center justify-between mb-2">
-                {isSearchActive && searchResponse ? (
-                  <p className="text-sm text-muted-foreground">
-                    Found {searchResponse.found} documents in {searchResponse.search_time_ms}ms
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Showing {documents.length} documents
-                  </p>
-                )}
+                <p className="text-sm text-muted-foreground">
+                  Showing {documents.length} documents
+                </p>
                 <Button variant="outline" size="sm" onClick={handleToggleSelectAll}>
                   {selectedDocIds.size === documents.length && documents.length > 0 ? (
                     <>
@@ -547,77 +410,7 @@ export function DocumentsView() {
                 </Button>
               </div>
             )}
-            {isSearchActive && results
-              ? results.map((hit, index) => (
-                  <div
-                    key={hit.document.id || index}
-                    className={`border rounded-lg p-4 transition-shadow ${
-                      selectedDocIds.has(hit.document.id)
-                        ? 'border-primary bg-primary/5'
-                        : 'hover:shadow-md'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <button
-                        onClick={() => handleToggleDocSelection(hit.document.id)}
-                        className="flex-shrink-0 mt-1"
-                      >
-                        {selectedDocIds.has(hit.document.id) ? (
-                          <CheckSquare className="w-5 h-5 text-primary" />
-                        ) : (
-                          <Square className="w-5 h-5 text-muted-foreground hover:text-primary" />
-                        )}
-                      </button>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-mono text-xs text-muted-foreground">
-                            ID: {hit.document.id}
-                          </span>
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                            Score: {hit.text_match}
-                          </span>
-                        </div>
-                        {hit.highlights && hit.highlights.length > 0 && (
-                          <div className="mb-3">
-                            <p className="text-xs font-medium text-muted-foreground mb-1">
-                              Highlights:
-                            </p>
-                            {hit.highlights.map((highlight, idx) => (
-                              <div key={idx} className="text-sm mb-1">
-                                <span className="font-medium">{String(highlight.field)}:</span>{' '}
-                                <span
-                                  dangerouslySetInnerHTML={{
-                                    __html: highlight.snippet || highlight.value || '',
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">
-                          {JSON.stringify(hit.document, null, 2)}
-                        </pre>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingDocument(hit.document)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => openDeleteConfirm(hit.document.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              : documents.map((doc) => (
+            {documents.map((doc) => (
                   <div
                     key={doc.id}
                     className={`border rounded-lg p-4 transition-shadow ${

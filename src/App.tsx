@@ -7,6 +7,7 @@ import { Layout } from './components/Layout/Layout';
 import { ConnectionsView } from './views/ConnectionsView';
 import { CollectionsView } from './views/CollectionsView';
 import { DocumentsView } from './views/DocumentsView';
+import { SearchView } from './views/SearchView';
 import { SettingsView } from './views/SettingsView';
 import { Toaster } from './components/ui/sonner';
 
@@ -26,6 +27,9 @@ function App() {
             </div>
             <div style={{ display: activeView === 'documents' ? 'block' : 'none' }}>
               <DocumentsView />
+            </div>
+            <div style={{ display: activeView === 'search' ? 'block' : 'none' }}>
+              <SearchView />
             </div>
             <div style={{ display: activeView === 'settings' ? 'block' : 'none' }}>
               <SettingsView />
