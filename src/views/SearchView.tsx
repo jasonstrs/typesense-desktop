@@ -4,7 +4,6 @@ import { useCollections } from '@/hooks/useCollections';
 import { useSearch } from '@/hooks/useSearch';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useSettings } from '@/hooks/useSettings';
-import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,9 +25,8 @@ import {
 import { toast } from 'sonner';
 
 export function SearchView() {
-  const { activeConnectionId, connections, getConnectionApiKey } = useConnectionStore();
+  const { activeConnectionId, connections, isClientReady } = useConnectionStore();
   const settings = useSettings();
-  const [isClientReady, setIsClientReady] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [queryByFields, setQueryByFields] = useState<string[]>([]);
@@ -43,28 +41,6 @@ export function SearchView() {
   const debouncedFilterBy = useDebounce(filterBy, settings.searchDebounceMs);
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
-
-  // Initialize Typesense client when active connection changes
-  useEffect(() => {
-    const initClient = async () => {
-      if (activeConnection && activeConnectionId) {
-        setIsClientReady(false);
-        try {
-          const apiKey = await getConnectionApiKey(activeConnectionId);
-          initializeClient(activeConnection.url, apiKey);
-          setIsClientReady(true);
-        } catch (error) {
-          console.error('Failed to initialize client:', error);
-          toast.error('Failed to connect to Typesense');
-          setIsClientReady(false);
-        }
-      } else {
-        setIsClientReady(false);
-      }
-    };
-
-    initClient();
-  }, [activeConnection, activeConnectionId, getConnectionApiKey]);
 
   const { data: collections } = useCollections(isClientReady);
 
@@ -414,16 +390,58 @@ export function SearchView() {
                         <p className="text-xs font-medium text-muted-foreground mb-1">
                           Highlights:
                         </p>
-                        {hit.highlights.map((highlight, idx) => (
-                          <div key={idx} className="text-sm mb-1">
-                            <span className="font-medium">{String(highlight.field)}:</span>{' '}
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: highlight.snippet || highlight.value || '',
-                              }}
-                            />
-                          </div>
-                        ))}
+                        {hit.highlights.map((highlight, idx) => {
+                          // Handle both snippet and matched_tokens
+                          const highlightContent = highlight.snippet || highlight.value || '';
+                          const matchedTokens = highlight.matched_tokens || [];
+                          const fieldName = String(highlight.field);
+
+                          // Get the actual field value from the document
+                          const fieldValue = hit.document[fieldName];
+
+                          return (
+                            <div key={idx} className="text-sm mb-1">
+                              <span className="font-medium">{fieldName}:</span>{' '}
+                              {highlightContent ? (
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: highlightContent,
+                                  }}
+                                />
+                              ) : Array.isArray(fieldValue) ? (
+                                // For array fields, show the full values and highlight matching ones
+                                <span>
+                                  {fieldValue.map((val, i) => {
+                                    const strVal = String(val);
+                                    const hasMatch = matchedTokens.some(token =>
+                                      strVal.toLowerCase().includes(String(token).toLowerCase())
+                                    );
+                                    return (
+                                      <span key={i}>
+                                        {i > 0 && ', '}
+                                        {hasMatch ? (
+                                          <mark className="bg-yellow-200 dark:bg-yellow-900">{strVal}</mark>
+                                        ) : (
+                                          <span>{strVal}</span>
+                                        )}
+                                      </span>
+                                    );
+                                  })}
+                                </span>
+                              ) : matchedTokens.length > 0 ? (
+                                // Fallback for non-array fields with matched tokens
+                                <span>
+                                  {matchedTokens.map((token, i) => (
+                                    <span key={i}>
+                                      {i > 0 && ', '}
+                                      <mark className="bg-yellow-200 dark:bg-yellow-900">{token}</mark>
+                                    </span>
+                                  ))}
+                                </span>
+                              ) : null}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                     <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">

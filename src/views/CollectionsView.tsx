@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useCollections, useCreateCollection, useDeleteCollection } from '@/hooks/useCollections';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
 import { CreateCollectionDialog } from '@/components/Collections/CreateCollectionDialog';
 import { CollectionDetailDialog } from '@/components/Collections/CollectionDetailDialog';
@@ -25,40 +24,17 @@ interface CollectionsViewProps {
 }
 
 export function CollectionsView({ onViewChange }: CollectionsViewProps) {
-  const { activeConnectionId, connections, getConnectionApiKey } = useConnectionStore();
+  const { activeConnectionId, connections, isClientReady } = useConnectionStore();
   const { setSelectedCollectionForDocuments } = useNavigation();
   const createCollection = useCreateCollection();
   const deleteCollection = useDeleteCollection();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
-  const [isClientReady, setIsClientReady] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [collectionToDelete, setCollectionToDelete] = useState<string | null>(null);
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
-
-  // Initialize Typesense client when active connection changes
-  useEffect(() => {
-    const initClient = async () => {
-      if (activeConnection && activeConnectionId) {
-        setIsClientReady(false);
-        try {
-          const apiKey = await getConnectionApiKey(activeConnectionId);
-          initializeClient(activeConnection.url, apiKey);
-          setIsClientReady(true);
-        } catch (error) {
-          console.error('Failed to initialize client:', error);
-          toast.error('Failed to connect to Typesense');
-          setIsClientReady(false);
-        }
-      } else {
-        setIsClientReady(false);
-      }
-    };
-
-    initClient();
-  }, [activeConnection, activeConnectionId, getConnectionApiKey]);
 
   // Only fetch collections when client is ready
   const { data: collections, isLoading, error, refetch } = useCollections(isClientReady);

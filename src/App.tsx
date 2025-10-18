@@ -19,21 +19,11 @@ function App() {
       <ThemeProvider>
         <NavigationProvider>
           <Layout activeView={activeView} onViewChange={setActiveView}>
-            <div style={{ display: activeView === 'connections' ? 'block' : 'none' }}>
-              <ConnectionsView />
-            </div>
-            <div style={{ display: activeView === 'collections' ? 'block' : 'none' }}>
-              <CollectionsView onViewChange={setActiveView} />
-            </div>
-            <div style={{ display: activeView === 'documents' ? 'block' : 'none' }}>
-              <DocumentsView />
-            </div>
-            <div style={{ display: activeView === 'search' ? 'block' : 'none' }}>
-              <SearchView />
-            </div>
-            <div style={{ display: activeView === 'settings' ? 'block' : 'none' }}>
-              <SettingsView />
-            </div>
+            {activeView === 'connections' && <ConnectionsView />}
+            {activeView === 'collections' && <CollectionsView onViewChange={setActiveView} />}
+            {activeView === 'documents' && <DocumentsView />}
+            {activeView === 'search' && <SearchView />}
+            {activeView === 'settings' && <SettingsView />}
           </Layout>
           <Toaster />
         </NavigationProvider>

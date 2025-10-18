@@ -9,10 +9,12 @@ import {
   setActiveConnectionId,
 } from '@/services/storage';
 import { setApiKey, getApiKey, deleteApiKey } from '@/services/keyring';
+import { initializeClient, clearClient } from '@/services/typesense';
 
 interface ConnectionStore {
   connections: Connection[];
   activeConnectionId: string | null;
+  isClientReady: boolean;
   isLoading: boolean;
   error: string | null;
 
@@ -33,6 +35,7 @@ interface ConnectionStore {
 export const useConnectionStore = create<ConnectionStore>((set, get) => ({
   connections: [],
   activeConnectionId: null,
+  isClientReady: false,
   isLoading: false,
   error: null,
 
@@ -41,7 +44,28 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     try {
       const connections = await getConnections();
       const activeId = await getActiveConnectionId();
-      set({ connections, activeConnectionId: activeId, isLoading: false });
+
+      // Initialize client for active connection
+      let isClientReady = false;
+      if (activeId) {
+        const activeConnection = connections.find((c) => c.id === activeId);
+        if (activeConnection) {
+          try {
+            const apiKey = await getApiKey(activeId);
+            initializeClient(activeConnection.url, apiKey);
+            isClientReady = true;
+          } catch (error) {
+            console.error('Failed to initialize client for active connection:', error);
+          }
+        }
+      }
+
+      set({
+        connections,
+        activeConnectionId: activeId,
+        isClientReady,
+        isLoading: false
+      });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
     }
@@ -57,9 +81,15 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       await setApiKey(connection.id, apiKey);
       console.log('API key saved, setting as active connection...');
       await setActiveConnectionId(connection.id);
-      console.log('API key saved, reloading connections...');
+      console.log('Initializing Typesense client...');
+      initializeClient(connection.url, apiKey);
       const connections = await getConnections();
-      set({ connections, activeConnectionId: connection.id, isLoading: false });
+      set({
+        connections,
+        activeConnectionId: connection.id,
+        isClientReady: true,
+        isLoading: false
+      });
       console.log('Connection added successfully and set as active');
     } catch (error) {
       console.error('Error adding connection:', error);
@@ -76,7 +106,21 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
         await setApiKey(connectionId, apiKey);
       }
       const connections = await getConnections();
-      set({ connections, isLoading: false });
+      const { activeConnectionId } = get();
+
+      // If updating the active connection, reinitialize client
+      if (connectionId === activeConnectionId) {
+        const connection = connections.find((c) => c.id === connectionId);
+        if (connection) {
+          const key = apiKey || await getApiKey(connectionId);
+          initializeClient(connection.url, key);
+          set({ connections, isClientReady: true, isLoading: false });
+        } else {
+          set({ connections, isLoading: false });
+        }
+      } else {
+        set({ connections, isLoading: false });
+      }
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
       throw error;
@@ -91,10 +135,16 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       const connections = await getConnections();
       const { activeConnectionId } = get();
 
-      // If we deleted the active connection, clear it
+      // If we deleted the active connection, clear it and the client
       if (activeConnectionId === connectionId) {
         await setActiveConnectionId(null);
-        set({ connections, activeConnectionId: null, isLoading: false });
+        clearClient();
+        set({
+          connections,
+          activeConnectionId: null,
+          isClientReady: false,
+          isLoading: false
+        });
       } else {
         set({ connections, isLoading: false });
       }
@@ -108,7 +158,30 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await setActiveConnectionId(connectionId);
-      set({ activeConnectionId: connectionId, isLoading: false });
+
+      // Initialize client for the new active connection
+      let isClientReady = false;
+      if (connectionId) {
+        const { connections } = get();
+        const connection = connections.find((c) => c.id === connectionId);
+        if (connection) {
+          try {
+            const apiKey = await getApiKey(connectionId);
+            initializeClient(connection.url, apiKey);
+            isClientReady = true;
+          } catch (error) {
+            console.error('Failed to initialize client for connection:', error);
+          }
+        }
+      } else {
+        clearClient();
+      }
+
+      set({
+        activeConnectionId: connectionId,
+        isClientReady,
+        isLoading: false
+      });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
       throw error;

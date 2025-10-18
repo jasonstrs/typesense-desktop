@@ -9,7 +9,6 @@ import {
 } from '@/hooks/useDocuments';
 import { useSettings } from '@/hooks/useSettings';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -25,10 +24,9 @@ import { Plus, AlertCircle, ChevronLeft, ChevronRight, Pencil, Trash2, CheckSqua
 import { toast } from 'sonner';
 
 export function DocumentsView() {
-  const { activeConnectionId, connections, getConnectionApiKey } = useConnectionStore();
+  const { activeConnectionId, connections, isClientReady } = useConnectionStore();
   const settings = useSettings();
   const { selectedCollectionForDocuments, setSelectedCollectionForDocuments } = useNavigation();
-  const [isClientReady, setIsClientReady] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -61,28 +59,6 @@ export function DocumentsView() {
       setCurrentPage(1);
     }
   }, [settings.defaultPageSize]);
-
-  // Initialize Typesense client when active connection changes
-  useEffect(() => {
-    const initClient = async () => {
-      if (activeConnection && activeConnectionId) {
-        setIsClientReady(false);
-        try {
-          const apiKey = await getConnectionApiKey(activeConnectionId);
-          initializeClient(activeConnection.url, apiKey);
-          setIsClientReady(true);
-        } catch (error) {
-          console.error('Failed to initialize client:', error);
-          toast.error('Failed to connect to Typesense');
-          setIsClientReady(false);
-        }
-      } else {
-        setIsClientReady(false);
-      }
-    };
-
-    initClient();
-  }, [activeConnection, activeConnectionId, getConnectionApiKey]);
 
   const { data: collections } = useCollections(isClientReady);
 
