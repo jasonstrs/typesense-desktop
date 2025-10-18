@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useCollections } from '@/hooks/useCollections';
 import { useSearch } from '@/hooks/useSearch';
-import { useDebounce } from '@/hooks/useDebounce';
 import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +24,7 @@ import {
 import { toast } from 'sonner';
 
 export function SearchView() {
-  const { activeConnectionId, connections, getConnectionSearchApiKey } = useConnectionStore();
+  const { activeConnectionId, connections, getConnectionApiKey } = useConnectionStore();
   const [isClientReady, setIsClientReady] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,10 +35,6 @@ export function SearchView() {
   const [executeSearch, setExecuteSearch] = useState(false);
   const perPage = 25;
 
-  // Debounce search query and filters
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
-  const debouncedFilterBy = useDebounce(filterBy, 500);
-
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
 
   // Initialize Typesense client when active connection changes
@@ -48,8 +43,7 @@ export function SearchView() {
       if (activeConnection && activeConnectionId) {
         setIsClientReady(false);
         try {
-          // Use search-specific key if available, falls back to admin key
-          const apiKey = await getConnectionSearchApiKey(activeConnectionId);
+          const apiKey = await getConnectionApiKey(activeConnectionId);
           initializeClient(activeConnection.url, apiKey);
           setIsClientReady(true);
         } catch (error) {
@@ -63,7 +57,7 @@ export function SearchView() {
     };
 
     initClient();
-  }, [activeConnection, activeConnectionId, getConnectionSearchApiKey]);
+  }, [activeConnection, activeConnectionId, getConnectionApiKey]);
 
   const { data: collections } = useCollections(isClientReady);
 
@@ -84,28 +78,15 @@ export function SearchView() {
     }
   }, [selectedCollection, collectionFields.length]);
 
-  // Auto-trigger search when debounced values change (if search was already executed)
-  useEffect(() => {
-    if (executeSearch && debouncedSearchQuery !== searchQuery) {
-      setCurrentPage(1);
-    }
-  }, [debouncedSearchQuery]);
-
-  useEffect(() => {
-    if (executeSearch && debouncedFilterBy !== filterBy) {
-      setCurrentPage(1);
-    }
-  }, [debouncedFilterBy]);
-
   const {
     data: searchResponse,
     isLoading: isSearching,
     error: searchError,
   } = useSearch({
     collectionName: selectedCollection,
-    searchQuery: debouncedSearchQuery,
+    searchQuery,
     queryBy: queryByFields,
-    filterBy: debouncedFilterBy || undefined,
+    filterBy: filterBy || undefined,
     sortBy: sortBy.length > 0 ? sortBy : undefined,
     page: currentPage,
     perPage,
