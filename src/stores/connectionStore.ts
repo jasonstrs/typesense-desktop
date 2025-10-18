@@ -8,7 +8,14 @@ import {
   getActiveConnectionId,
   setActiveConnectionId,
 } from '@/services/storage';
-import { setApiKey, getApiKey, deleteApiKey } from '@/services/keyring';
+import {
+  setApiKey,
+  getApiKey,
+  deleteApiKey,
+  setSearchApiKey,
+  getSearchApiKey,
+  deleteSearchApiKey,
+} from '@/services/keyring';
 
 interface ConnectionStore {
   connections: Connection[];
@@ -18,15 +25,21 @@ interface ConnectionStore {
 
   // Actions
   loadConnections: () => Promise<void>;
-  addConnection: (connection: Connection, apiKey: string) => Promise<void>;
+  addConnection: (
+    connection: Connection,
+    apiKey: string,
+    searchApiKey?: string
+  ) => Promise<void>;
   updateConnection: (
     connectionId: string,
     updates: Partial<Connection>,
-    apiKey?: string
+    apiKey?: string,
+    searchApiKey?: string
   ) => Promise<void>;
   deleteConnection: (connectionId: string) => Promise<void>;
   setActiveConnection: (connectionId: string | null) => Promise<void>;
   getConnectionApiKey: (connectionId: string) => Promise<string>;
+  getConnectionSearchApiKey: (connectionId: string) => Promise<string>;
   testConnection: (url: string, apiKey: string) => Promise<boolean>;
 }
 
@@ -47,7 +60,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     }
   },
 
-  addConnection: async (connection, apiKey) => {
+  addConnection: async (connection, apiKey, searchApiKey) => {
     console.log('Adding connection:', connection.id, 'with API key');
     set({ isLoading: true, error: null });
     try {
@@ -55,6 +68,10 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       await addConnectionToStorage(connection);
       console.log('Connection saved to storage, now saving API key...');
       await setApiKey(connection.id, apiKey);
+      if (searchApiKey) {
+        console.log('Saving search API key...');
+        await setSearchApiKey(connection.id, searchApiKey);
+      }
       console.log('API key saved, setting as active connection...');
       await setActiveConnectionId(connection.id);
       console.log('API key saved, reloading connections...');
@@ -68,12 +85,19 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     }
   },
 
-  updateConnection: async (connectionId, updates, apiKey) => {
+  updateConnection: async (connectionId, updates, apiKey, searchApiKey) => {
     set({ isLoading: true, error: null });
     try {
       await updateConnectionInStorage(connectionId, updates);
       if (apiKey) {
         await setApiKey(connectionId, apiKey);
+      }
+      if (searchApiKey !== undefined) {
+        if (searchApiKey) {
+          await setSearchApiKey(connectionId, searchApiKey);
+        } else {
+          await deleteSearchApiKey(connectionId);
+        }
       }
       const connections = await getConnections();
       set({ connections, isLoading: false });
@@ -88,6 +112,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     try {
       await deleteConnectionFromStorage(connectionId);
       await deleteApiKey(connectionId);
+      await deleteSearchApiKey(connectionId);
       const connections = await getConnections();
       const { activeConnectionId } = get();
 
@@ -116,6 +141,15 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
   },
 
   getConnectionApiKey: async (connectionId) => {
+    return await getApiKey(connectionId);
+  },
+
+  getConnectionSearchApiKey: async (connectionId) => {
+    // Try to get search-specific key first, fall back to admin key
+    const searchKey = await getSearchApiKey(connectionId);
+    if (searchKey) {
+      return searchKey;
+    }
     return await getApiKey(connectionId);
   },
 
