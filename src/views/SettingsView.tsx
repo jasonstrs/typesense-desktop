@@ -11,22 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Save, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface AppSettings {
-  theme: 'light' | 'dark' | 'system';
-  defaultPageSize: number;
-  searchDebounceMs: number;
-  autoRefreshCollections: boolean;
-  autoRefreshInterval: number;
-}
-
-const DEFAULT_SETTINGS: AppSettings = {
-  theme: 'system',
-  defaultPageSize: 25,
-  searchDebounceMs: 500,
-  autoRefreshCollections: false,
-  autoRefreshInterval: 30,
-};
+import { AppSettings, DEFAULT_SETTINGS, triggerSettingsUpdate } from '@/hooks/useSettings';
 
 export function SettingsView() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -47,6 +32,7 @@ export function SettingsView() {
 
   const handleSave = () => {
     localStorage.setItem('app-settings', JSON.stringify(settings));
+    triggerSettingsUpdate(); // Notify all components that settings have changed
     setHasChanges(false);
     toast.success('Settings saved successfully');
   };

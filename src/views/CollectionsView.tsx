@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useCollections, useCreateCollection, useDeleteCollection } from '@/hooks/useCollections';
+import { useNavigation } from '@/contexts/NavigationContext';
 import { initializeClient } from '@/services/typesense';
 import { Button } from '@/components/ui/button';
 import { CreateCollectionDialog } from '@/components/Collections/CreateCollectionDialog';
 import { CollectionDetailDialog } from '@/components/Collections/CollectionDetailDialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Database, AlertCircle, Trash2, Eye } from 'lucide-react';
+import { Plus, Database, AlertCircle, Trash2, Eye, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 import {
@@ -18,8 +19,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-export function CollectionsView() {
+interface CollectionsViewProps {
+  onViewChange: (view: string) => void;
+}
+
+export function CollectionsView({ onViewChange }: CollectionsViewProps) {
   const { activeConnectionId, connections, getConnectionApiKey } = useConnectionStore();
+  const { setSelectedCollectionForDocuments } = useNavigation();
   const createCollection = useCreateCollection();
   const deleteCollection = useDeleteCollection();
 
@@ -71,6 +77,11 @@ export function CollectionsView() {
     } catch (error: any) {
       toast.error(error?.message || 'Failed to delete collection');
     }
+  };
+
+  const handleViewDocuments = (collectionName: string) => {
+    setSelectedCollectionForDocuments(collectionName);
+    onViewChange('documents');
   };
 
   if (!activeConnection) {
@@ -157,7 +168,16 @@ export function CollectionsView() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleViewDocuments(collection.name)}
+                        title="View Documents"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setSelectedCollection(collection.name)}
+                        title="View Schema"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -173,6 +193,7 @@ export function CollectionsView() {
                             handleDeleteCollection(collection.name);
                           }
                         }}
+                        title="Delete Collection"
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
