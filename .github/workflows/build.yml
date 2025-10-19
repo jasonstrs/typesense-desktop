@@ -1,0 +1,98 @@
+name: Build Typesense Desktop
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: Linux
+            artifact-name: Linux
+            artifact-path: |
+              src-tauri/target/release/bundle/appimage/*.AppImage
+              src-tauri/target/release/bundle/deb/*.deb
+
+          - os: windows-latest
+            platform: Windows
+            artifact-name: Windows
+            artifact-path: |
+              src-tauri/target/release/bundle/msi/*.msi
+              src-tauri/target/release/bundle/nsis/*-setup.exe
+
+          - os: macos-latest
+            platform: macOS
+            artifact-name: macOS
+            artifact-path: |
+              src-tauri/target/release/bundle/dmg/*.dmg
+              src-tauri/target/release/bundle/macos/*.app
+
+    runs-on: ${{ matrix.os }}
+    name: Build - ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.0-dev \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libsecret-1-dev
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npm run type-check
+
+      - name: Build Tauri app
+        run: npm run tauri build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-path }}
+
+  summary:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Build Summary
+    if: always()
+
+    steps:
+      - name: Build Status
+        run: |
+          echo "## Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All platform builds completed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Download Installers" >> $GITHUB_STEP_SUMMARY
+          echo "Check the **Artifacts** section at the top of this page to download:" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 **macOS**: DMG installer and .app bundle" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 **Windows**: MSI and NSIS installers" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 **Linux**: AppImage and DEB package" >> $GITHUB_STEP_SUMMARY
