@@ -14,14 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Search,
-  AlertCircle,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  X,
-} from 'lucide-react';
+import { Search, AlertCircle, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function SearchView() {
@@ -47,22 +40,22 @@ export function SearchView() {
   const selectedCollectionData = collections?.find((c) => c.name === selectedCollection);
 
   // Extract field names from schema
-  const collectionFields =
-    selectedCollectionData?.fields?.map((field) => field.name) || [];
+  const collectionFields = selectedCollectionData?.fields?.map((field) => field.name) || [];
 
   // Reset query fields when collection changes
   useEffect(() => {
     if (selectedCollection && collectionFields.length > 0) {
       // Get all searchable fields (string types)
-      const searchableFields = selectedCollectionData?.fields
-        ?.filter(
-          (field) =>
-            field.type === 'string' ||
-            field.type === 'string[]' ||
-            field.type === 'string*' ||
-            field.type === 'auto'
-        )
-        .map((field) => field.name) || [];
+      const searchableFields =
+        selectedCollectionData?.fields
+          ?.filter(
+            (field) =>
+              field.type === 'string' ||
+              field.type === 'string[]' ||
+              field.type === 'string*' ||
+              field.type === 'auto'
+          )
+          .map((field) => field.name) || [];
 
       setQueryByFields(searchableFields.length > 0 ? searchableFields : collectionFields);
       setFilterBy('');
@@ -139,9 +132,7 @@ export function SearchView() {
         <div className="border-2 border-dashed rounded-lg p-12 text-center">
           <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">No Active Connection</h3>
-          <p className="text-muted-foreground mb-4">
-            Please connect to a Typesense instance first
-          </p>
+          <p className="text-muted-foreground mb-4">Please connect to a Typesense instance first</p>
           <Button onClick={() => window.location.reload()}>Go to Connections</Button>
         </div>
       </div>
@@ -152,11 +143,11 @@ export function SearchView() {
     if (!executeSearch || totalPages <= 1) return null;
 
     return (
-      <div className="flex items-center justify-between p-4 bg-background border-t">
+      <div className="flex items-center justify-between p-4 bg-background border-t sticky bottom-0">
         <div className="text-sm text-muted-foreground">
           Showing {(currentPage - 1) * perPage + 1} to{' '}
-          {Math.min(currentPage * perPage, searchResponse?.found || 0)} of{' '}
-          {searchResponse?.found} results
+          {Math.min(currentPage * perPage, searchResponse?.found || 0)} of {searchResponse?.found}{' '}
+          results
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -225,9 +216,7 @@ export function SearchView() {
     <div className="h-full flex flex-col">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Search</h1>
-        <p className="text-muted-foreground mt-1">
-          Search documents in {activeConnection.name}
-        </p>
+        <p className="text-muted-foreground mt-1">Search documents in {activeConnection.name}</p>
       </div>
 
       {/* Collection selector */}
@@ -286,32 +275,24 @@ export function SearchView() {
             <div className="mt-4 space-y-4">
               {/* Filter by */}
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Filter By (optional)
-                </label>
+                <label className="block text-sm font-medium mb-2">Filter By (optional)</label>
                 <Input
                   type="text"
                   placeholder="e.g., rating:>3 && category:=Books"
                   value={filterBy}
                   onChange={(e) => setFilterBy(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Use Typesense filter syntax
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">Use Typesense filter syntax</p>
               </div>
 
               {/* Sort by */}
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Sort By (optional)
-                </label>
+                <label className="block text-sm font-medium mb-2">Sort By (optional)</label>
                 <Input
                   type="text"
                   placeholder="e.g., rating:desc,name:asc"
                   value={sortBy.join(',')}
-                  onChange={(e) =>
-                    setSortBy(e.target.value ? e.target.value.split(',') : [])
-                  }
+                  onChange={(e) => setSortBy(e.target.value ? e.target.value.split(',') : [])}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Comma-separated field:order pairs
@@ -328,9 +309,7 @@ export function SearchView() {
           <div className="border-2 border-dashed rounded-lg p-12 text-center">
             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Collection Selected</h3>
-            <p className="text-muted-foreground">
-              Please select a collection to start searching
-            </p>
+            <p className="text-muted-foreground">Please select a collection to start searching</p>
           </div>
         ) : !executeSearch ? (
           <div className="border-2 border-dashed rounded-lg p-12 text-center">
@@ -359,9 +338,7 @@ export function SearchView() {
           <div className="border-2 border-dashed rounded-lg p-12 text-center">
             <Search className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Results Found</h3>
-            <p className="text-muted-foreground mb-4">
-              Try adjusting your search query or filters
-            </p>
+            <p className="text-muted-foreground mb-4">Try adjusting your search query or filters</p>
           </div>
         ) : (
           <div className="space-y-4 pb-4">
@@ -413,14 +390,16 @@ export function SearchView() {
                                 <span>
                                   {fieldValue.map((val, i) => {
                                     const strVal = String(val);
-                                    const hasMatch = matchedTokens.some(token =>
+                                    const hasMatch = matchedTokens.some((token) =>
                                       strVal.toLowerCase().includes(String(token).toLowerCase())
                                     );
                                     return (
                                       <span key={i}>
                                         {i > 0 && ', '}
                                         {hasMatch ? (
-                                          <mark className="bg-yellow-200 dark:bg-yellow-900">{strVal}</mark>
+                                          <mark className="bg-yellow-200 dark:bg-yellow-900">
+                                            {strVal}
+                                          </mark>
                                         ) : (
                                           <span>{strVal}</span>
                                         )}
@@ -434,7 +413,9 @@ export function SearchView() {
                                   {matchedTokens.map((token, i) => (
                                     <span key={i}>
                                       {i > 0 && ', '}
-                                      <mark className="bg-yellow-200 dark:bg-yellow-900">{token}</mark>
+                                      <mark className="bg-yellow-200 dark:bg-yellow-900">
+                                        {token}
+                                      </mark>
                                     </span>
                                   ))}
                                 </span>
@@ -455,6 +436,7 @@ export function SearchView() {
         )}
       </div>
 
+      {/* Pagination - sticky at bottom */}
       {executeSearch && results.length > 0 && renderPagination()}
     </div>
   );

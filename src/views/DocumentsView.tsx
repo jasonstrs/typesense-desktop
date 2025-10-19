@@ -20,7 +20,16 @@ import {
 } from '@/components/ui/select';
 import { DocumentDialog } from '@/components/Documents/DocumentDialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Plus, AlertCircle, ChevronLeft, ChevronRight, Pencil, Trash2, CheckSquare, Square } from 'lucide-react';
+import {
+  Plus,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
+  Trash2,
+  CheckSquare,
+  Square,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DocumentsView() {
@@ -80,12 +89,7 @@ export function DocumentsView() {
     data: documentsResponse,
     isLoading: isLoadingDocuments,
     error: documentsError,
-  } = useDocuments(
-    selectedCollection,
-    currentPage,
-    perPage,
-    isClientReady && !!selectedCollection
-  );
+  } = useDocuments(selectedCollection, currentPage, perPage, isClientReady && !!selectedCollection);
 
   const deleteDocument = useDeleteDocument(selectedCollection);
   const createDocument = useCreateDocument(selectedCollection);
@@ -182,9 +186,7 @@ export function DocumentsView() {
 
   // Data for display
   const documents = documentsResponse?.hits?.map((hit) => hit.document) || [];
-  const totalPages = documentsResponse
-    ? Math.ceil(documentsResponse.found / perPage)
-    : 0;
+  const totalPages = documentsResponse ? Math.ceil(documentsResponse.found / perPage) : 0;
 
   if (!activeConnection) {
     return (
@@ -204,7 +206,7 @@ export function DocumentsView() {
     if (totalPages <= 1) return null;
 
     return (
-      <div className="flex items-center justify-between p-4 bg-background border-t">
+      <div className="flex items-center justify-between p-4 bg-background border-t sticky bottom-0">
         <div className="text-sm text-muted-foreground">
           Showing {(currentPage - 1) * perPage + 1} to{' '}
           {Math.min(currentPage * perPage, documentsResponse?.found || 0)} of{' '}
@@ -387,46 +389,44 @@ export function DocumentsView() {
               </div>
             )}
             {documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className={`border rounded-lg p-4 transition-shadow ${
-                      selectedDocIds.has(doc.id) ? 'border-primary bg-primary/5' : 'hover:shadow-md'
-                    }`}
+              <div
+                key={doc.id}
+                className={`border rounded-lg p-4 transition-shadow ${
+                  selectedDocIds.has(doc.id) ? 'border-primary bg-primary/5' : 'hover:shadow-md'
+                }`}
+              >
+                <div className="flex justify-between items-start gap-4">
+                  <button
+                    onClick={() => handleToggleDocSelection(doc.id)}
+                    className="flex-shrink-0 mt-1"
                   >
-                    <div className="flex justify-between items-start gap-4">
-                      <button
-                        onClick={() => handleToggleDocSelection(doc.id)}
-                        className="flex-shrink-0 mt-1"
-                      >
-                        {selectedDocIds.has(doc.id) ? (
-                          <CheckSquare className="w-5 h-5 text-primary" />
-                        ) : (
-                          <Square className="w-5 h-5 text-muted-foreground hover:text-primary" />
-                        )}
-                      </button>
-                      <div className="flex-1">
-                        <div className="font-mono text-sm text-muted-foreground mb-2">
-                          ID: {doc.id}
-                        </div>
-                        <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">
-                          {JSON.stringify(doc, null, 2)}
-                        </pre>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <Button variant="outline" size="sm" onClick={() => setEditingDocument(doc)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => openDeleteConfirm(doc.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+                    {selectedDocIds.has(doc.id) ? (
+                      <CheckSquare className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Square className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                    )}
+                  </button>
+                  <div className="flex-1">
+                    <div className="font-mono text-sm text-muted-foreground mb-2">ID: {doc.id}</div>
+                    <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">
+                      {JSON.stringify(doc, null, 2)}
+                    </pre>
                   </div>
-                ))}
+                  <div className="flex gap-2 ml-4">
+                    <Button variant="outline" size="sm" onClick={() => setEditingDocument(doc)}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => openDeleteConfirm(doc.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
