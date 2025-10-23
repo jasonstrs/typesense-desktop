@@ -1,70 +1,86 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, Trash2 } from 'lucide-react';
-import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
+import { Database, FileText, Eye, Trash2 } from 'lucide-react';
+import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 interface CollectionCardProps {
   collection: CollectionSchema;
-  onView: (collectionName: string) => void;
+  onViewDocuments: (collectionName: string) => void;
+  onViewSchema: (collectionName: string) => void;
   onDelete: (collectionName: string) => void;
 }
 
-export function CollectionCard({ collection, onView, onDelete }: CollectionCardProps) {
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString();
-  };
-
+export function CollectionCard({
+  collection,
+  onViewDocuments,
+  onViewSchema,
+  onDelete,
+}: CollectionCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-xl">{collection.name}</CardTitle>
-            <CardDescription>Created {formatDate(collection.created_at)}</CardDescription>
+    <div className="border rounded-lg bg-card hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
+      {/* Icon Section */}
+      <div className="w-full bg-muted flex items-center justify-center p-6">
+        <Database className="w-16 h-16 text-muted-foreground" />
+      </div>
+
+      {/* Content Section */}
+      <div className="p-4 flex-1 flex flex-col">
+        {/* Collection Name */}
+        <h3 className="text-lg font-semibold mb-3 truncate" title={collection.name}>
+          {collection.name}
+        </h3>
+
+        {/* Collection Stats */}
+        <div className="space-y-2 mb-4 flex-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Documents:</span>
+            <span className="font-medium">
+              {collection.num_documents.toLocaleString()}
+            </span>
           </div>
-          <Badge variant="secondary">{collection.num_documents} docs</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div>
-            <p className="text-sm text-muted-foreground mb-2">Fields:</p>
-            <div className="flex flex-wrap gap-2">
-              {collection.fields.slice(0, 5).map((field) => (
-                <Badge key={field.name} variant="outline">
-                  {field.name}: {field.type}
-                </Badge>
-              ))}
-              {collection.fields.length > 5 && (
-                <Badge variant="outline">+{collection.fields.length - 5} more</Badge>
-              )}
-            </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Fields:</span>
+            <span className="font-medium">{collection.fields?.length || 0}</span>
           </div>
-          {collection.default_sorting_field && (
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Default sort:{' '}
-                <span className="font-medium">{collection.default_sorting_field}</span>
-              </p>
-            </div>
-          )}
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onView(collection.name)}
-              className="flex-1"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              View Details
-            </Button>
-            <Button variant="destructive" size="sm" onClick={() => onDelete(collection.name)}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Created:</span>
+            <span className="font-medium">
+              {collection.created_at
+                ? new Date(collection.created_at * 1000).toLocaleDateString()
+                : 'N/A'}
+            </span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 pt-3 border-t">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewDocuments(collection.name)}
+            className="flex-1"
+            title="View Documents"
+          >
+            <FileText className="w-4 h-4 mr-1" />
+            Documents
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewSchema(collection.name)}
+            title="View Schema"
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(collection.name)}
+            title="Delete Collection"
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

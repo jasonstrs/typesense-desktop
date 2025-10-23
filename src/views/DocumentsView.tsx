@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DocumentCard } from '@/components/Documents/DocumentCard';
 import { DocumentDialog } from '@/components/Documents/DocumentDialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
@@ -25,8 +26,6 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  Pencil,
-  Trash2,
   CheckSquare,
   Square,
 } from 'lucide-react';
@@ -277,161 +276,149 @@ export function DocumentsView() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex justify-between items-center mb-6">
+      {/* Top Header Bar */}
+      <div className="border-b bg-card p-4 space-y-3">
+        {/* Row 1: Title and Add Button */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Documents</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Browse and manage documents in {activeConnection.name}
+            </p>
+          </div>
+          <Button disabled={!selectedCollection} onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Document
+          </Button>
+        </div>
+
+        {/* Row 2: Collection Selector */}
         <div>
-          <h1 className="text-3xl font-bold">Documents</h1>
-          <p className="text-muted-foreground mt-1">
-            Browse and manage documents in {activeConnection.name}
-          </p>
+          <Select value={selectedCollection} onValueChange={setSelectedCollection}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Choose a collection..." />
+            </SelectTrigger>
+            <SelectContent>
+              {collections?.map((collection) => (
+                <SelectItem key={collection.name} value={collection.name}>
+                  {collection.name} ({collection.num_documents} documents)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Button disabled={!selectedCollection} onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Document
-        </Button>
       </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-2">Select Collection</label>
-        <Select value={selectedCollection} onValueChange={setSelectedCollection}>
-          <SelectTrigger className="w-full max-w-md">
-            <SelectValue placeholder="Choose a collection..." />
-          </SelectTrigger>
-          <SelectContent>
-            {collections?.map((collection) => (
-              <SelectItem key={collection.name} value={collection.name}>
-                {collection.name} ({collection.num_documents} documents)
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Bulk actions toolbar */}
-      {selectedDocIds.size > 0 && (
-        <div className="mb-4 border rounded-lg p-4 bg-muted/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <p className="text-sm font-medium">
-                {selectedDocIds.size} document{selectedDocIds.size > 1 ? 's' : ''} selected
-              </p>
-              <Button variant="outline" size="sm" onClick={handleToggleSelectAll}>
-                Deselect All
-              </Button>
-            </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setBulkDeleteConfirmOpen(true)}
-              disabled={isBulkDeleting}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {isBulkDeleting ? 'Deleting...' : `Delete ${selectedDocIds.size}`}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 overflow-y-auto">
-        {!selectedCollection ? (
-          <div className="border-2 border-dashed rounded-lg p-12 text-center">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No Collection Selected</h3>
-            <p className="text-muted-foreground">
-              Please select a collection to view its documents
-            </p>
-          </div>
-        ) : isLoadingDocuments ? (
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-24" />
-            ))}
-          </div>
-        ) : documentsError ? (
-          <div className="border-2 border-dashed rounded-lg p-12 text-center">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
-            <h3 className="text-lg font-semibold mb-2">Failed to Load Documents</h3>
-            <p className="text-muted-foreground mb-4">
-              {documentsError instanceof Error ? documentsError.message : 'An error occurred'}
-            </p>
-          </div>
-        ) : documents.length === 0 ? (
-          <div className="border-2 border-dashed rounded-lg p-12 text-center">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No Documents</h3>
-            <p className="text-muted-foreground mb-4">
-              This collection doesn't have any documents yet
-            </p>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add First Document
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4 pb-4">
-            {documents.length > 0 && (
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-muted-foreground">
-                  Showing {documents.length} documents
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Bulk actions toolbar */}
+        {selectedDocIds.size > 0 && (
+          <div className="mx-6 mt-4 border rounded-lg p-3 bg-muted/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <p className="text-sm font-medium">
+                  {selectedDocIds.size} document{selectedDocIds.size > 1 ? 's' : ''} selected
                 </p>
                 <Button variant="outline" size="sm" onClick={handleToggleSelectAll}>
-                  {selectedDocIds.size === documents.length && documents.length > 0 ? (
-                    <>
-                      <CheckSquare className="w-4 h-4 mr-2" />
-                      Deselect All
-                    </>
-                  ) : (
-                    <>
-                      <Square className="w-4 h-4 mr-2" />
-                      Select All
-                    </>
-                  )}
+                  Deselect All
                 </Button>
               </div>
-            )}
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className={`border rounded-lg p-4 transition-shadow ${
-                  selectedDocIds.has(doc.id) ? 'border-primary bg-primary/5' : 'hover:shadow-md'
-                }`}
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setBulkDeleteConfirmOpen(true)}
+                disabled={isBulkDeleting}
               >
-                <div className="flex justify-between items-start gap-4">
-                  <button
-                    onClick={() => handleToggleDocSelection(doc.id)}
-                    className="flex-shrink-0 mt-1"
-                  >
-                    {selectedDocIds.has(doc.id) ? (
-                      <CheckSquare className="w-5 h-5 text-primary" />
-                    ) : (
-                      <Square className="w-5 h-5 text-muted-foreground hover:text-primary" />
-                    )}
-                  </button>
-                  <div className="flex-1">
-                    <div className="font-mono text-sm text-muted-foreground mb-2">ID: {doc.id}</div>
-                    <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">
-                      {JSON.stringify(doc, null, 2)}
-                    </pre>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <Button variant="outline" size="sm" onClick={() => setEditingDocument(doc)}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => openDeleteConfirm(doc.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                {isBulkDeleting ? 'Deleting...' : `Delete ${selectedDocIds.size}`}
+              </Button>
+            </div>
           </div>
         )}
-      </div>
 
-      {selectedCollection && documents.length > 0 && renderPagination()}
+        {/* Documents Grid */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {!selectedCollection ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <AlertCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">No Collection Selected</h3>
+                <p className="text-muted-foreground">
+                  Please select a collection to view its documents
+                </p>
+              </div>
+            </div>
+          ) : isLoadingDocuments ? (
+            <div className="flex flex-wrap gap-4">
+              {[...Array(8)].map((_, i) => (
+                <Skeleton key={i} className="h-64" style={{ minWidth: '280px', flex: '1 1 280px' }} />
+              ))}
+            </div>
+          ) : documentsError ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <AlertCircle className="w-16 h-16 mx-auto mb-4 text-destructive" />
+                <h3 className="text-lg font-semibold mb-2">Failed to Load Documents</h3>
+                <p className="text-muted-foreground mb-4">
+                  {documentsError instanceof Error ? documentsError.message : 'An error occurred'}
+                </p>
+              </div>
+            </div>
+          ) : documents.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <AlertCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">No Documents</h3>
+                <p className="text-muted-foreground mb-4">
+                  This collection doesn't have any documents yet
+                </p>
+                <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Document
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {documents.length > 0 && (
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {documents.length} of {documentsResponse?.found} documents
+                  </p>
+                  <Button variant="outline" size="sm" onClick={handleToggleSelectAll}>
+                    {selectedDocIds.size === documents.length && documents.length > 0 ? (
+                      <>
+                        <CheckSquare className="w-4 h-4 mr-2" />
+                        Deselect All
+                      </>
+                    ) : (
+                      <>
+                        <Square className="w-4 h-4 mr-2" />
+                        Select All
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-4">
+                {documents.map((doc) => (
+                  <div key={doc.id} style={{ minWidth: '280px', flex: '1 1 280px', maxWidth: '320px' }}>
+                    <DocumentCard
+                      document={doc}
+                      isSelected={selectedDocIds.has(doc.id)}
+                      onToggleSelect={() => handleToggleDocSelection(doc.id)}
+                      onEdit={() => setEditingDocument(doc)}
+                      onDelete={() => openDeleteConfirm(doc.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Pagination - Sticky at Bottom */}
+        {selectedCollection && documents.length > 0 && totalPages > 1 && renderPagination()}
+      </div>
 
       <DocumentDialog
         open={isAddDialogOpen}
