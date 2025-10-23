@@ -235,7 +235,11 @@ export function SearchView() {
             ) : isSearching ? (
               <div className="flex flex-wrap gap-4">
                 {[...Array(8)].map((_, i) => (
-                  <Skeleton key={i} className="h-64" style={{ minWidth: '280px', flex: '1 1 280px' }} />
+                  <Skeleton
+                    key={i}
+                    className="h-64"
+                    style={{ minWidth: '280px', flex: '1 1 280px' }}
+                  />
                 ))}
               </div>
             ) : searchError ? (
@@ -254,13 +258,22 @@ export function SearchView() {
                 <div className="text-center">
                   <Search className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No Results Found</h3>
-                  <p className="text-muted-foreground">Try adjusting your search query or filters</p>
+                  <p className="text-muted-foreground">
+                    Try adjusting your search query or filters
+                  </p>
                 </div>
               </div>
             ) : (
               <div className="flex flex-wrap gap-4">
                 {results.map((hit, index) => (
-                  <div key={hit.document.id || index} style={{ minWidth: '280px', flex: '1 1 280px', maxWidth: '320px' }}>
+                  <div
+                    key={hit.document.id || index}
+                    style={{
+                      minWidth: '280px',
+                      flex: '1 1 280px',
+                      maxWidth: '320px',
+                    }}
+                  >
                     <ResultCard
                       document={hit.document}
                       score={hit.text_match}

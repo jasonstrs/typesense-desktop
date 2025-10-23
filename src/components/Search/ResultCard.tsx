@@ -36,7 +36,7 @@ export function ResultCard({ document, score, searchQuery }: ResultCardProps) {
   };
 
   return (
-    <div className="border rounded-lg bg-card hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
+    <div className="border rounded-lg h-full bg-card hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
       {/* Content Section */}
       <div className="p-4 flex-1">
         {/* Score Badge */}
@@ -62,7 +62,9 @@ export function ResultCard({ document, score, searchQuery }: ResultCardProps) {
                         {idx > 0 && ', '}
                         {isImageUrl(item) && !imageErrors.has(item) ? (
                           <div className="mt-1">
-                            <div className="text-xs text-muted-foreground break-all mb-1">{item}</div>
+                            <div className="text-xs text-muted-foreground break-all mb-1">
+                              {item}
+                            </div>
                             <img
                               src={item}
                               alt={`${key} image`}

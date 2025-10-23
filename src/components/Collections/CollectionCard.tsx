@@ -16,7 +16,7 @@ export function CollectionCard({
   onDelete,
 }: CollectionCardProps) {
   return (
-    <div className="border rounded-lg bg-card hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
+    <div className="border rounded-lg bg-card h-full hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
       {/* Icon Section */}
       <div className="w-full bg-muted flex items-center justify-center p-6">
         <Database className="w-16 h-16 text-muted-foreground" />
@@ -33,9 +33,7 @@ export function CollectionCard({
         <div className="space-y-2 mb-4 flex-1">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Documents:</span>
-            <span className="font-medium">
-              {collection.num_documents.toLocaleString()}
-            </span>
+            <span className="font-medium">{collection.num_documents.toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Fields:</span>

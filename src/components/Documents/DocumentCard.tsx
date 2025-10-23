@@ -26,7 +26,7 @@ export function DocumentCard({
 
   return (
     <div
-      className={`border rounded-lg bg-card hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col ${
+      className={`border rounded-lg bg-card hover:shadow-lg h-full transition-shadow duration-200 overflow-hidden flex flex-col ${
         isSelected ? 'border-primary ring-2 ring-primary/20' : ''
       }`}
     >
@@ -67,7 +67,9 @@ export function DocumentCard({
                         {idx > 0 && ', '}
                         {isImageUrl(item) && !imageErrors.has(item) ? (
                           <div className="mt-1">
-                            <div className="text-xs text-muted-foreground break-all mb-1">{item}</div>
+                            <div className="text-xs text-muted-foreground break-all mb-1">
+                              {item}
+                            </div>
                             <img
                               src={item}
                               alt={`${key} image`}

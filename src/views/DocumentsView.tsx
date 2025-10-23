@@ -21,14 +21,7 @@ import {
 import { DocumentCard } from '@/components/Documents/DocumentCard';
 import { DocumentDialog } from '@/components/Documents/DocumentDialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import {
-  Plus,
-  AlertCircle,
-  ChevronLeft,
-  ChevronRight,
-  CheckSquare,
-  Square,
-} from 'lucide-react';
+import { Plus, AlertCircle, ChevronLeft, ChevronRight, CheckSquare, Square } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DocumentsView() {
@@ -350,7 +343,11 @@ export function DocumentsView() {
           ) : isLoadingDocuments ? (
             <div className="flex flex-wrap gap-4">
               {[...Array(8)].map((_, i) => (
-                <Skeleton key={i} className="h-64" style={{ minWidth: '280px', flex: '1 1 280px' }} />
+                <Skeleton
+                  key={i}
+                  className="h-64"
+                  style={{ minWidth: '280px', flex: '1 1 280px' }}
+                />
               ))}
             </div>
           ) : documentsError ? (
@@ -401,7 +398,14 @@ export function DocumentsView() {
               )}
               <div className="flex flex-wrap gap-4">
                 {documents.map((doc) => (
-                  <div key={doc.id} style={{ minWidth: '280px', flex: '1 1 280px', maxWidth: '320px' }}>
+                  <div
+                    key={doc.id}
+                    style={{
+                      minWidth: '280px',
+                      flex: '1 1 280px',
+                      maxWidth: '320px',
+                    }}
+                  >
                     <DocumentCard
                       document={doc}
                       isSelected={selectedDocIds.has(doc.id)}

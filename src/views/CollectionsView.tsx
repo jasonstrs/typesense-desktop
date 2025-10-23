@@ -130,7 +130,10 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
         ) : (
           <div className="flex flex-wrap gap-4">
             {collections?.map((collection) => (
-              <div key={collection.name} style={{ minWidth: '280px', flex: '1 1 280px', maxWidth: '320px' }}>
+              <div
+                key={collection.name}
+                style={{ minWidth: '280px', flex: '1 1 280px', maxWidth: '320px' }}
+              >
                 <CollectionCard
                   collection={collection}
                   onViewDocuments={handleViewDocuments}
