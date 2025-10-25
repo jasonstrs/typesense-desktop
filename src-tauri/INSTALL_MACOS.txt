@@ -1,0 +1,42 @@
+================================================================================
+  Typesense Desktop - macOS Installation Instructions
+================================================================================
+
+Thank you for downloading Typesense Desktop!
+
+INSTALLATION STEPS:
+-------------------
+
+1. Drag "Typesense Desktop.app" to your Applications folder
+
+2. Open Terminal and run this command to remove the quarantine flag:
+
+   xattr -cr "/Applications/Typesense Desktop.app"
+
+3. Launch Typesense Desktop from your Applications folder
+
+
+WHY THE TERMINAL COMMAND?
+--------------------------
+macOS Gatekeeper marks apps from unidentified developers as "damaged"
+unless they are code-signed with an Apple Developer account ($99/year).
+
+The xattr command removes this quarantine flag, allowing the app to run
+normally. This is safe - the app is open source and you can inspect the
+code at: https://github.com/jasonstrs/typesense-desktop
+
+
+TROUBLESHOOTING:
+----------------
+If you still see security warnings:
+- Right-click the app and select "Open"
+- Click "Open" in the security dialog
+- Or go to System Settings > Privacy & Security and click "Open Anyway"
+
+
+QUESTIONS OR ISSUES?
+--------------------
+Visit: https://github.com/jasonstrs/typesense-desktop/issues
+
+
+================================================================================
