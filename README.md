@@ -31,6 +31,7 @@ No more fumbling with curl commands or API clients - manage everything through a
 ## Features
 
 ### 🔐 Connection Management
+
 - Add, edit, and delete multiple Typesense connections
 - Support for local, staging, and production environments
 - **Secure API key storage** using OS native credential managers:
@@ -41,6 +42,7 @@ No more fumbling with curl commands or API clients - manage everything through a
 - Quick switch between active connections
 
 ### 📚 Collection Management
+
 - View all collections with real-time document counts
 - Create new collections with visual schema builder
 - View detailed collection schemas and metadata
@@ -48,6 +50,7 @@ No more fumbling with curl commands or API clients - manage everything through a
 - Modern card-based grid layout
 
 ### 📄 Document Management
+
 - Browse documents in any collection with pagination
 - Add new documents with JSON editor
 - Edit existing documents
@@ -56,6 +59,7 @@ No more fumbling with curl commands or API clients - manage everything through a
 - Stacked field layout for better readability
 
 ### 🔍 Advanced Search
+
 - **Dual search modes**:
   - **Instant Search Mode** (default): Visual filter builder with auto-detected fields
   - **JSON Mode**: Direct Typesense query parameter editing for power users
@@ -69,6 +73,7 @@ No more fumbling with curl commands or API clients - manage everything through a
 - Responsive flex-based results grid
 
 ### 🎨 Modern UI/UX
+
 - Clean, intuitive interface
 - Dark mode support (follows OS preference)
 - Responsive layouts that adapt to screen size
@@ -86,13 +91,14 @@ No more fumbling with curl commands or API clients - manage everything through a
 2. **Open the DMG** and drag **Typesense Desktop.app** to your **Applications** folder
 
 3. **Remove quarantine flag** (required for unsigned apps):
+
    ```bash
    xattr -cr "/Applications/Typesense Desktop.app"
    ```
 
 4. **Launch** from your Applications folder
 
-> **Why the terminal command?** macOS Gatekeeper marks apps from unidentified developers as "damaged". The `xattr` command removes this flag safely. See `INSTALL_MACOS.txt` in the DMG for more details.
+> **Why the terminal command?** macOS Gatekeeper marks apps from unidentified developers as "damaged". The `xattr` command removes this quarantine flag, allowing the app to run normally. This is safe - the app is open source and you can inspect the code at: https://github.com/jasonstrs/typesense-desktop
 
 ---
 
@@ -115,6 +121,7 @@ No more fumbling with curl commands or API clients - manage everything through a
 1. **Download** the latest `typesense-desktop_1.0.0_amd64.deb` from [Releases](https://github.com/jasonstrs/typesense-desktop/releases)
 
 2. **Install** the package:
+
    ```bash
    sudo dpkg -i typesense-desktop_1.0.0_amd64.deb
    ```
