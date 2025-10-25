@@ -284,78 +284,77 @@ export function SearchView() {
               </div>
             )}
           </div>
-
-          {/* Pagination - Sticky at Bottom */}
-          {executeSearch && results.length > 0 && totalPages > 1 && (
-            <div className="flex items-center justify-between p-4 bg-background border-t">
-              <div className="text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * perPage + 1} to{' '}
-                {Math.min(currentPage * perPage, searchResponse?.found || 0)} of{' '}
-                {searchResponse?.found} results
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(1)}
-                  >
-                    First
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Page</span>
-                  <Select
-                    value={currentPage.toString()}
-                    onValueChange={(value) => setCurrentPage(Number(value))}
-                  >
-                    <SelectTrigger className="w-20 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <SelectItem key={page} value={page.toString()}>
-                          {page}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <span className="text-sm text-muted-foreground">of {totalPages}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(totalPages)}
-                  >
-                    Last
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+      {/* Pagination - Sticky at Bottom */}
+      {executeSearch && results.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-between p-4 bg-background border-t sticky bottom-0">
+          <div className="text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * perPage + 1} to{' '}
+            {Math.min(currentPage * perPage, searchResponse?.found || 0)} of {searchResponse?.found}{' '}
+            results
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+              >
+                First
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Page</span>
+              <Select
+                value={currentPage.toString()}
+                onValueChange={(value) => setCurrentPage(Number(value))}
+              >
+                <SelectTrigger className="w-20 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <SelectItem key={page} value={page.toString()}>
+                      {page}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">of {totalPages}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+              >
+                Last
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

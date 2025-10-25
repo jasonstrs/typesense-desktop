@@ -419,10 +419,9 @@ export function DocumentsView() {
             </>
           )}
         </div>
-
-        {/* Pagination - Sticky at Bottom */}
-        {selectedCollection && documents.length > 0 && totalPages > 1 && renderPagination()}
       </div>
+      {/* Pagination - Sticky at Bottom */}
+      {selectedCollection && documents.length > 0 && totalPages > 1 && renderPagination()}
 
       <DocumentDialog
         open={isAddDialogOpen}
