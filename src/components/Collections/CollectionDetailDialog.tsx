@@ -67,10 +67,13 @@ export function CollectionDetailDialog({
               </div>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(
-                  collection.fields.reduce((acc, field) => {
-                    acc[field.type] = (acc[field.type] || 0) + 1;
-                    return acc;
-                  }, {} as Record<string, number>)
+                  collection.fields.reduce(
+                    (acc, field) => {
+                      acc[field.type] = (acc[field.type] || 0) + 1;
+                      return acc;
+                    },
+                    {} as Record<string, number>
+                  )
                 ).map(([type, count]) => (
                   <Badge key={type} variant="secondary">
                     {type}: {count}
@@ -117,7 +120,9 @@ export function CollectionDetailDialog({
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-4">Schema ({collection.fields.length} fields)</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Schema ({collection.fields.length} fields)
+              </h3>
               <div className="border rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
@@ -130,35 +135,37 @@ export function CollectionDetailDialog({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {collection.fields.map((field) => (
-                      <TableRow key={field.name}>
-                        <TableCell className="font-medium">{field.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{field.type}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {field.facet ? (
-                            <Check className="w-4 h-4 text-green-500 mx-auto" />
-                          ) : (
-                            <X className="w-4 h-4 text-muted-foreground mx-auto" />
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {field.optional ? (
-                            <Check className="w-4 h-4 text-green-500 mx-auto" />
-                          ) : (
-                            <X className="w-4 h-4 text-muted-foreground mx-auto" />
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {field.index !== false ? (
-                            <Check className="w-4 h-4 text-green-500 mx-auto" />
-                          ) : (
-                            <X className="w-4 h-4 text-muted-foreground mx-auto" />
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {collection.fields
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((field) => (
+                        <TableRow key={field.name}>
+                          <TableCell className="font-medium">{field.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{field.type}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {field.facet ? (
+                              <Check className="w-4 h-4 text-green-500 mx-auto" />
+                            ) : (
+                              <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {field.optional ? (
+                              <Check className="w-4 h-4 text-green-500 mx-auto" />
+                            ) : (
+                              <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {field.index !== false ? (
+                              <Check className="w-4 h-4 text-green-500 mx-auto" />
+                            ) : (
+                              <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               </div>
