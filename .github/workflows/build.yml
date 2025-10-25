@@ -12,23 +12,17 @@ jobs:
           - os: ubuntu-22.04
             platform: Linux
             artifact-name: Linux
-            artifact-path: |
-              src-tauri/target/release/bundle/appimage/*.AppImage
-              src-tauri/target/release/bundle/deb/*.deb
+            artifact-path: src-tauri/target/release/bundle/deb/*.deb
 
           - os: windows-latest
             platform: Windows
             artifact-name: Windows
-            artifact-path: |
-              src-tauri/target/release/bundle/msi/*.msi
-              src-tauri/target/release/bundle/nsis/*-setup.exe
+            artifact-path: src-tauri/target/release/bundle/msi/*.msi
 
           - os: macos-latest
             platform: macOS
             artifact-name: macOS
-            artifact-path: |
-              src-tauri/target/release/bundle/dmg/*.dmg
-              src-tauri/target/release/bundle/macos/*.app
+            artifact-path: src-tauri/target/release/bundle/dmg/*.dmg
 
     runs-on: ${{ matrix.os }}
     name: Build - ${{ matrix.platform }}
@@ -93,6 +87,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Download Installers" >> $GITHUB_STEP_SUMMARY
           echo "Check the **Artifacts** section at the top of this page to download:" >> $GITHUB_STEP_SUMMARY
-          echo "- 📦 **macOS**: DMG installer and .app bundle" >> $GITHUB_STEP_SUMMARY
-          echo "- 📦 **Windows**: MSI and NSIS installers" >> $GITHUB_STEP_SUMMARY
-          echo "- 📦 **Linux**: AppImage and DEB package" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 **macOS**: DMG installer" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 **Windows**: MSI installer" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 **Linux**: DEB package" >> $GITHUB_STEP_SUMMARY
