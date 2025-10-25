@@ -58,7 +58,19 @@ export function FilterSidebar({
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const sortableFields = fields
-    .filter((f) => !f.type.includes('[]'))
+    .filter((f) => {
+      // Filter out array types (not sortable)
+      if (f.type.includes('[]')) return false;
+
+      // Check if field has sort explicitly set to false
+      if ('sort' in f && f.sort === false) return false;
+
+      // Numeric fields are sortable by default
+      if (['int32', 'int64', 'float'].includes(f.type)) return true;
+
+      // For other types, only include if sort is explicitly true
+      return f.sort === true;
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 
   // Sync JSON mode when switching from Instant to JSON
