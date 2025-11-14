@@ -21,7 +21,7 @@ import {
 import { DocumentCard } from '@/components/Documents/DocumentCard';
 import { DocumentDialog } from '@/components/Documents/DocumentDialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Plus, AlertCircle, ChevronLeft, ChevronRight, CheckSquare, Square } from 'lucide-react';
+import { Plus, AlertCircle, ChevronLeft, ChevronRight, CheckSquare, Square, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DocumentsView() {
@@ -46,6 +46,13 @@ export function DocumentsView() {
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
 
+  // Reset state when connection changes
+  useEffect(() => {
+    setSelectedCollection('');
+    setCurrentPage(1);
+    setSelectedDocIds(new Set());
+  }, [activeConnectionId]);
+
   // Auto-select collection from navigation context
   useEffect(() => {
     if (selectedCollectionForDocuments) {
@@ -61,7 +68,7 @@ export function DocumentsView() {
     }
   }, [settings.defaultPageSize]);
 
-  const { data: collections } = useCollections(isClientReady);
+  const { data: collections } = useCollections(isClientReady, activeConnectionId);
 
   // Reset selection when collection changes
   useEffect(() => {
@@ -81,7 +88,8 @@ export function DocumentsView() {
     data: documentsResponse,
     isLoading: isLoadingDocuments,
     error: documentsError,
-  } = useDocuments(selectedCollection, currentPage, perPage, isClientReady && !!selectedCollection);
+    refetch: refetchDocuments,
+  } = useDocuments(selectedCollection, currentPage, perPage, isClientReady && !!selectedCollection, activeConnectionId);
 
   const deleteDocument = useDeleteDocument(selectedCollection);
   const createDocument = useCreateDocument(selectedCollection);
@@ -279,10 +287,20 @@ export function DocumentsView() {
               Browse and manage documents in {activeConnection.name}
             </p>
           </div>
-          <Button disabled={!selectedCollection} onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Document
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              disabled={!selectedCollection || isLoadingDocuments}
+              onClick={() => refetchDocuments()}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingDocuments ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button disabled={!selectedCollection} onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Document
+            </Button>
+          </div>
         </div>
 
         {/* Row 2: Collection Selector */}

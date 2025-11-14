@@ -13,6 +13,7 @@ export interface UseSearchParams {
   perPage?: number;
   facetBy?: string[];
   enabled?: boolean;
+  connectionId?: string | null;
 }
 
 export function useSearch({
@@ -25,10 +26,12 @@ export function useSearch({
   perPage = 25,
   facetBy,
   enabled = true,
+  connectionId,
 }: UseSearchParams) {
   return useQuery({
     queryKey: [
       'search',
+      connectionId,
       collectionName,
       searchQuery,
       queryBy,
@@ -67,7 +70,7 @@ export function useSearch({
 
       return response;
     },
-    enabled: enabled && !!collectionName && queryBy.length > 0,
+    enabled: enabled && !!collectionName && queryBy.length > 0 && !!connectionId,
     retry: 1,
   });
 }

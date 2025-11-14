@@ -112,7 +112,7 @@ No more fumbling with curl commands or API clients - manage everything through a
 
 ### macOS
 
-1. **Download** the latest `Typesense-Desktop_1.0.0.dmg` from [Releases](https://github.com/jasonstrs/typesense-desktop/releases)
+1. **Download** the latest `Typesense-Desktop_1.0.1.dmg` from [Releases](https://github.com/jasonstrs/typesense-desktop/releases)
 
 2. **Open the DMG** and drag **Typesense Desktop.app** to your **Applications** folder
 
@@ -130,7 +130,7 @@ No more fumbling with curl commands or API clients - manage everything through a
 
 ### Windows
 
-1. **Download** the latest `Typesense-Desktop_1.0.0.msi` from [Releases](https://github.com/jasonstrs/typesense-desktop/releases)
+1. **Download** the latest `Typesense-Desktop_1.0.1.msi` from [Releases](https://github.com/jasonstrs/typesense-desktop/releases)
 
 2. **Double-click** the MSI file to launch the installer
 
@@ -144,12 +144,12 @@ No more fumbling with curl commands or API clients - manage everything through a
 
 ### Linux (Debian/Ubuntu)
 
-1. **Download** the latest `typesense-desktop_1.0.0_amd64.deb` from [Releases](https://github.com/jasonstrs/typesense-desktop/releases)
+1. **Download** the latest `typesense-desktop_1.0.1_amd64.deb` from [Releases](https://github.com/jasonstrs/typesense-desktop/releases)
 
 2. **Install** the package:
 
    ```bash
-   sudo dpkg -i typesense-desktop_1.0.0_amd64.deb
+   sudo dpkg -i typesense-desktop_1.0.1_amd64.deb
    ```
 
 3. **Launch** from your applications menu or run:
