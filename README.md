@@ -8,7 +8,7 @@
 [![GitHub release](https://img.shields.io/github/release/jasonstrs/typesense-desktop.svg)](https://github.com/jasonstrs/typesense-desktop/releases)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue)]()
 
-[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Building from Source](#building-from-source) • [Contributing](#contributing)
+[Screenshots](#screenshots) • [Features](#features) • [Installation](#installation) • [Usage](#usage) • [Building from Source](#building-from-source) • [Contributing](#contributing)
 
 </div>
 
@@ -25,6 +25,32 @@ Typesense Desktop is a native desktop application that provides a beautiful, int
 - 🔒 Store API keys securely in your OS credential manager
 
 No more fumbling with curl commands or API clients - manage everything through a clean, modern interface.
+
+---
+
+## Screenshots
+
+<div align="center">
+
+### Connection Management
+![Add New Connection](screenshots/AddNewConnection.png)
+
+### Collections View
+![View Collections](screenshots/ViewCollection.png)
+
+### Collection Schema
+![Collection Info](screenshots/ViewCollectionInfo.png)
+
+### Add New Collection
+![Add New Collection](screenshots/AddNewCollection.png)
+
+### Advanced Search
+![Search View](screenshots/ViewSearch.png)
+
+### Dark Mode
+![Dark Mode Settings](screenshots/SettingsWithDarkMode.png)
+
+</div>
 
 ---
 
