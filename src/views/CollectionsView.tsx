@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useCollections, useCreateCollection, useDeleteCollection } from '@/hooks/useCollections';
+import { useAliases } from '@/hooks/useAliases';
+import { getAliasesForCollection } from '@/lib/aliasResolver';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { Button } from '@/components/ui/button';
 import { CreateCollectionDialog } from '@/components/Collections/CreateCollectionDialog';
@@ -29,8 +31,9 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
 
-  // Only fetch collections when client is ready
+  // Fetch collections and aliases
   const { data: collections, isLoading, error, refetch } = useCollections(isClientReady, activeConnectionId);
+  const { data: aliases } = useAliases(isClientReady, activeConnectionId);
 
   const handleCreateCollection = async (data: CollectionCreateSchema) => {
     try {
@@ -135,19 +138,25 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
           </div>
         ) : (
           <div className="flex flex-wrap gap-4">
-            {collections?.map((collection) => (
-              <div
-                key={collection.name}
-                style={{ minWidth: '280px', flex: '1 1 280px', maxWidth: '320px' }}
-              >
-                <CollectionCard
-                  collection={collection}
-                  onViewDocuments={handleViewDocuments}
-                  onViewSchema={setSelectedCollection}
-                  onDelete={openDeleteConfirm}
-                />
-              </div>
-            ))}
+            {collections?.map((collection) => {
+              const collectionAliases = getAliasesForCollection(collection.name, aliases);
+              const aliasNames = collectionAliases.map((a) => a.name);
+
+              return (
+                <div
+                  key={collection.name}
+                  style={{ minWidth: '280px', flex: '1 1 280px', maxWidth: '320px' }}
+                >
+                  <CollectionCard
+                    collection={collection}
+                    onViewDocuments={handleViewDocuments}
+                    onViewSchema={setSelectedCollection}
+                    onDelete={openDeleteConfirm}
+                    aliasNames={aliasNames}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

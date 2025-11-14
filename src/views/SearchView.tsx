@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useCollections } from '@/hooks/useCollections';
+import { useAliases } from '@/hooks/useAliases';
+import { getDisplayName } from '@/lib/aliasResolver';
 import { useSearch } from '@/hooks/useSearch';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useSettings } from '@/hooks/useSettings';
@@ -38,6 +40,7 @@ export function SearchView() {
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
   const { data: collections } = useCollections(isClientReady, activeConnectionId);
+  const { data: aliases } = useAliases(isClientReady, activeConnectionId);
   const selectedCollectionData = collections?.find((c) => c.name === selectedCollection);
 
   // Reset state when connection changes
@@ -163,11 +166,28 @@ export function SearchView() {
               <SelectValue placeholder="Select collection..." />
             </SelectTrigger>
             <SelectContent>
-              {collections?.map((collection) => (
-                <SelectItem key={collection.name} value={collection.name}>
-                  {collection.name} ({collection.num_documents})
-                </SelectItem>
-              ))}
+              {/* Show aliases first */}
+              {aliases?.map((alias) => {
+                const targetCollection = collections?.find((c) => c.name === alias.collection_name);
+                return (
+                  <SelectItem key={`alias-${alias.name}`} value={alias.name}>
+                    🔗 {alias.name} ({targetCollection?.num_documents || 0})
+                  </SelectItem>
+                );
+              })}
+              {/* Then show collections */}
+              {collections?.map((collection) => {
+                const displayName = getDisplayName(collection.name, aliases);
+                // Only show collection if it doesn't have an alias
+                if (displayName === collection.name) {
+                  return (
+                    <SelectItem key={`collection-${collection.name}`} value={collection.name}>
+                      📁 {collection.name} ({collection.num_documents})
+                    </SelectItem>
+                  );
+                }
+                return null;
+              })}
             </SelectContent>
           </Select>
         </div>
