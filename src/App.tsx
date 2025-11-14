@@ -6,6 +6,7 @@ import { ThemeProvider } from './components/theme-provider';
 import { Layout } from './components/Layout/Layout';
 import { ConnectionsView } from './views/ConnectionsView';
 import { CollectionsView } from './views/CollectionsView';
+import { AliasesView } from './views/AliasesView';
 import { DocumentsView } from './views/DocumentsView';
 import { SearchView } from './views/SearchView';
 import { SettingsView } from './views/SettingsView';
@@ -21,6 +22,7 @@ function App() {
           <Layout activeView={activeView} onViewChange={setActiveView}>
             {activeView === 'connections' && <ConnectionsView />}
             {activeView === 'collections' && <CollectionsView onViewChange={setActiveView} />}
+            {activeView === 'aliases' && <AliasesView />}
             {activeView === 'documents' && <DocumentsView />}
             {activeView === 'search' && <SearchView />}
             {activeView === 'settings' && <SettingsView />}

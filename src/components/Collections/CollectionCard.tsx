@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Database, FileText, Eye, Trash2 } from 'lucide-react';
+import { Database, FileText, Eye, Trash2, Link2 } from 'lucide-react';
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 interface CollectionCardProps {
@@ -7,6 +7,7 @@ interface CollectionCardProps {
   onViewDocuments: (collectionName: string) => void;
   onViewSchema: (collectionName: string) => void;
   onDelete: (collectionName: string) => void;
+  aliasNames?: string[]; // Array of alias names pointing to this collection
 }
 
 export function CollectionCard({
@@ -14,6 +15,7 @@ export function CollectionCard({
   onViewDocuments,
   onViewSchema,
   onDelete,
+  aliasNames = [],
 }: CollectionCardProps) {
   return (
     <div className="border rounded-lg bg-card h-full hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
@@ -28,6 +30,22 @@ export function CollectionCard({
         <h3 className="text-lg font-semibold mb-3 truncate" title={collection.name}>
           {collection.name}
         </h3>
+
+        {/* Alias Badges */}
+        {aliasNames.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {aliasNames.map((aliasName) => (
+              <span
+                key={aliasName}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-primary/10 text-primary"
+                title={`Alias: ${aliasName}`}
+              >
+                <Link2 className="w-3 h-3" />
+                {aliasName}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Collection Stats */}
         <div className="space-y-2 mb-4 flex-1">
