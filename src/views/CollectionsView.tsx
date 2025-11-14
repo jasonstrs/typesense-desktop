@@ -8,7 +8,7 @@ import { CollectionDetailDialog } from '@/components/Collections/CollectionDetai
 import { CollectionCard } from '@/components/Collections/CollectionCard';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Database, AlertCircle } from 'lucide-react';
+import { Plus, Database, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 
@@ -30,7 +30,7 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
 
   // Only fetch collections when client is ready
-  const { data: collections, isLoading, error, refetch } = useCollections(isClientReady);
+  const { data: collections, isLoading, error, refetch } = useCollections(isClientReady, activeConnectionId);
 
   const handleCreateCollection = async (data: CollectionCreateSchema) => {
     try {
@@ -87,10 +87,16 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
               Manage collections in {activeConnection.name}
             </p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Collection
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => refetch()} disabled={isLoading}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Collection
+            </Button>
+          </div>
         </div>
       </div>
 

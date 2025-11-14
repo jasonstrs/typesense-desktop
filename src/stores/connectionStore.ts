@@ -10,6 +10,7 @@ import {
 } from '@/services/storage';
 import { setApiKey, getApiKey, deleteApiKey } from '@/services/keyring';
 import { initializeClient, clearClient } from '@/services/typesense';
+import { queryClient } from '@/lib/queryClient';
 
 interface ConnectionStore {
   connections: Connection[];
@@ -158,6 +159,9 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await setActiveConnectionId(connectionId);
+
+      // Clear all query caches when switching connections
+      queryClient.invalidateQueries();
 
       // Initialize client for the new active connection
       let isClientReady = false;

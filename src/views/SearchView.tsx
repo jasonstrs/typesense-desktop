@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { FilterSidebar } from '@/components/Search/FilterSidebar';
 import { ResultCard } from '@/components/Search/ResultCard';
-import { Search, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, AlertCircle, ChevronLeft, ChevronRight, X, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function SearchView() {
@@ -37,8 +37,19 @@ export function SearchView() {
   const debouncedFilterBy = useDebounce(filterBy, settings.searchDebounceMs);
 
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
-  const { data: collections } = useCollections(isClientReady);
+  const { data: collections } = useCollections(isClientReady, activeConnectionId);
   const selectedCollectionData = collections?.find((c) => c.name === selectedCollection);
+
+  // Reset state when connection changes
+  useEffect(() => {
+    setSelectedCollection('');
+    setSearchQuery('');
+    setQueryByFields([]);
+    setFilterBy('');
+    setSortBy('');
+    setCurrentPage(1);
+    setExecuteSearch(false);
+  }, [activeConnectionId]);
 
   // Reset query fields when collection changes and auto-execute search
   useEffect(() => {
@@ -92,6 +103,7 @@ export function SearchView() {
     data: searchResponse,
     isLoading: isSearching,
     error: searchError,
+    refetch: refetchSearch,
   } = useSearch({
     collectionName: selectedCollection,
     searchQuery: debouncedSearchQuery,
@@ -101,6 +113,7 @@ export function SearchView() {
     page: currentPage,
     perPage,
     enabled: executeSearch && isClientReady && !!selectedCollection && queryByFields.length > 0,
+    connectionId: activeConnectionId,
   });
 
   const handleSearch = () => {
@@ -174,10 +187,20 @@ export function SearchView() {
             Search
           </Button>
           {executeSearch && (
-            <Button variant="outline" onClick={handleReset}>
-              <X className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() => refetchSearch()}
+                disabled={isSearching}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isSearching ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button variant="outline" onClick={handleReset}>
+                <X className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+            </>
           )}
         </div>
 

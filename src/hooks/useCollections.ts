@@ -3,15 +3,15 @@ import { getClient } from '@/services/typesense';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
-export function useCollections(enabled = true) {
+export function useCollections(enabled = true, connectionId?: string | null) {
   return useQuery({
-    queryKey: ['collections'],
+    queryKey: ['collections', connectionId],
     queryFn: async (): Promise<CollectionSchema[]> => {
       const client = getClient();
       const response = await client.collections().retrieve();
       return response;
     },
-    enabled,
+    enabled: enabled && !!connectionId,
     retry: 1,
   });
 }
