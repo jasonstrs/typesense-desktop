@@ -6,9 +6,10 @@ interface AliasCardProps {
   alias: CollectionAlias;
   documentCount?: number;
   onDelete: (aliasName: string) => void;
+  readOnly?: boolean;
 }
 
-export function AliasCard({ alias, documentCount, onDelete }: AliasCardProps) {
+export function AliasCard({ alias, documentCount, onDelete, readOnly = false }: AliasCardProps) {
   return (
     <div className="border rounded-lg bg-card h-full hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
       {/* Icon Section */}
@@ -40,18 +41,20 @@ export function AliasCard({ alias, documentCount, onDelete }: AliasCardProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-3 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(alias.name)}
-            className="flex-1"
-            title="Delete Alias"
-          >
-            <Trash2 className="w-4 h-4 mr-1 text-destructive" />
-            Delete
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex gap-2 pt-3 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(alias.name)}
+              className="flex-1"
+              title="Delete Alias"
+            >
+              <Trash2 className="w-4 h-4 mr-1 text-destructive" />
+              Delete
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

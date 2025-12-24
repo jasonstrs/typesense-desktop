@@ -11,7 +11,7 @@ import { Plus, Link2, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function AliasesView() {
-  const { activeConnectionId, connections, isClientReady } = useConnectionStore();
+  const { activeConnectionId, connections, isClientReady, isReadOnly } = useConnectionStore();
   const createAlias = useCreateAlias();
   const deleteAlias = useDeleteAlias();
 
@@ -89,7 +89,7 @@ export function AliasesView() {
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button onClick={() => setIsCreateDialogOpen(true)} disabled={isReadOnly}>
               <Plus className="w-4 h-4 mr-2" />
               Create Alias
             </Button>
@@ -141,6 +141,7 @@ export function AliasesView() {
                   alias={alias}
                   documentCount={getDocumentCount(alias.collection_name)}
                   onDelete={openDeleteConfirm}
+                  readOnly={isReadOnly}
                 />
               </div>
             ))}

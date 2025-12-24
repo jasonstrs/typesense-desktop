@@ -18,6 +18,7 @@ interface ConnectionStore {
   isClientReady: boolean;
   isLoading: boolean;
   error: string | null;
+  isReadOnly: boolean;
 
   // Actions
   loadConnections: () => Promise<void>;
@@ -39,6 +40,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
   isClientReady: false,
   isLoading: false,
   error: null,
+  isReadOnly: false,
 
   loadConnections: async () => {
     set({ isLoading: true, error: null });
@@ -48,9 +50,11 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
 
       // Initialize client for active connection
       let isClientReady = false;
+      let isReadOnly = false;
       if (activeId) {
         const activeConnection = connections.find((c) => c.id === activeId);
         if (activeConnection) {
+          isReadOnly = activeConnection.readOnly || false;
           try {
             const apiKey = await getApiKey(activeId);
             initializeClient(activeConnection.url, apiKey);
@@ -65,6 +69,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
         connections,
         activeConnectionId: activeId,
         isClientReady,
+        isReadOnly,
         isLoading: false
       });
     } catch (error) {
@@ -89,6 +94,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
         connections,
         activeConnectionId: connection.id,
         isClientReady: true,
+        isReadOnly: connection.readOnly || false,
         isLoading: false
       });
       console.log('Connection added successfully and set as active');
@@ -109,13 +115,20 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       const connections = await getConnections();
       const { activeConnectionId } = get();
 
-      // If updating the active connection, reinitialize client
+      // If updating the active connection, reinitialize client and invalidate all queries
       if (connectionId === activeConnectionId) {
         const connection = connections.find((c) => c.id === connectionId);
         if (connection) {
           const key = apiKey || await getApiKey(connectionId);
           initializeClient(connection.url, key);
-          set({ connections, isClientReady: true, isLoading: false });
+          // Invalidate all queries to refresh data with new connection settings
+          queryClient.invalidateQueries();
+          set({
+            connections,
+            isClientReady: true,
+            isReadOnly: connection.readOnly || false,
+            isLoading: false
+          });
         } else {
           set({ connections, isLoading: false });
         }
@@ -140,10 +153,13 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       if (activeConnectionId === connectionId) {
         await setActiveConnectionId(null);
         clearClient();
+        // Invalidate all queries since the active connection was deleted
+        queryClient.invalidateQueries();
         set({
           connections,
           activeConnectionId: null,
           isClientReady: false,
+          isReadOnly: false,
           isLoading: false
         });
       } else {
@@ -165,10 +181,12 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
 
       // Initialize client for the new active connection
       let isClientReady = false;
+      let isReadOnly = false;
       if (connectionId) {
         const { connections } = get();
         const connection = connections.find((c) => c.id === connectionId);
         if (connection) {
+          isReadOnly = connection.readOnly || false;
           try {
             const apiKey = await getApiKey(connectionId);
             initializeClient(connection.url, apiKey);
@@ -184,6 +202,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       set({
         activeConnectionId: connectionId,
         isClientReady,
+        isReadOnly,
         isLoading: false
       });
     } catch (error) {

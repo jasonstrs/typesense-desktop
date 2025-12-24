@@ -9,6 +9,7 @@ interface DocumentCardProps {
   onToggleSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  readOnly?: boolean;
 }
 
 export function DocumentCard({
@@ -17,6 +18,7 @@ export function DocumentCard({
   onToggleSelect,
   onEdit,
   onDelete,
+  readOnly = false,
 }: DocumentCardProps) {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
@@ -32,7 +34,7 @@ export function DocumentCard({
     >
       {/* Header with selection checkbox and actions */}
       <div className="p-3 border-b bg-muted/30 flex items-center justify-between">
-        <button onClick={onToggleSelect} className="flex items-center gap-2">
+        <button onClick={onToggleSelect} className="flex items-center gap-2" disabled={readOnly}>
           {isSelected ? (
             <CheckSquare className="w-5 h-5 text-primary" />
           ) : (
@@ -41,14 +43,16 @@ export function DocumentCard({
           <span className="font-mono text-xs text-muted-foreground">ID: {document.id}</span>
         </button>
 
-        <div className="flex gap-1">
-          <Button variant="ghost" size="sm" onClick={onEdit}>
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete}>
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex gap-1">
+            <Button variant="ghost" size="sm" onClick={onEdit}>
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onDelete}>
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Content Section */}

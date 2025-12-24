@@ -8,6 +8,7 @@ interface CollectionCardProps {
   onViewSchema: (collectionName: string) => void;
   onDelete: (collectionName: string) => void;
   aliasNames?: string[]; // Array of alias names pointing to this collection
+  readOnly?: boolean;
 }
 
 export function CollectionCard({
@@ -16,6 +17,7 @@ export function CollectionCard({
   onViewSchema,
   onDelete,
   aliasNames = [],
+  readOnly = false,
 }: CollectionCardProps) {
   return (
     <div className="border rounded-lg bg-card h-full hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
@@ -87,14 +89,16 @@ export function CollectionCard({
           >
             <Eye className="w-4 h-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(collection.name)}
-            title="Delete Collection"
-          >
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
+          {!readOnly && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(collection.name)}
+              title="Delete Collection"
+            >
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          )}
         </div>
       </div>
     </div>

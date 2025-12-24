@@ -3,8 +3,9 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { Button } from '@/components/ui/button';
 import { ConnectionForm } from '@/components/ConnectionManager/ConnectionForm';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Plus, Trash2, CheckCircle, Loader2 } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Loader2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
+import { Connection } from '@/types/connection';
 
 export function ConnectionsView() {
   const {
@@ -12,6 +13,7 @@ export function ConnectionsView() {
     activeConnectionId,
     loadConnections,
     addConnection,
+    updateConnection,
     deleteConnection,
     setActiveConnection,
     testConnection,
@@ -19,6 +21,7 @@ export function ConnectionsView() {
   } = useConnectionStore();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingConnection, setEditingConnection] = useState<Connection | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [connectionToDelete, setConnectionToDelete] = useState<{
     id: string;
@@ -30,18 +33,48 @@ export function ConnectionsView() {
     loadConnections();
   }, [loadConnections]);
 
-  const handleAddConnection = async (data: { name: string; url: string; apiKey: string }) => {
+  const handleAddConnection = async (data: { name: string; url: string; apiKey: string; readOnly?: boolean }) => {
     try {
       const newConnection = {
         id: crypto.randomUUID(),
         name: data.name,
         url: data.url,
+        readOnly: data.readOnly,
       };
       await addConnection(newConnection, data.apiKey);
       toast.success('Connection added successfully!');
     } catch (error) {
       toast.error('Failed to add connection');
       throw error;
+    }
+  };
+
+  const handleEditConnection = async (data: { name: string; url: string; apiKey: string; readOnly?: boolean }) => {
+    if (!editingConnection) return;
+
+    try {
+      const updates = {
+        name: data.name,
+        url: data.url,
+        readOnly: data.readOnly,
+      };
+      // Only update API key if it's been changed (not empty)
+      await updateConnection(editingConnection.id, updates, data.apiKey || undefined);
+      toast.success('Connection updated successfully!');
+      setEditingConnection(null);
+    } catch (error) {
+      toast.error('Failed to update connection');
+      throw error;
+    }
+  };
+
+  const openEditDialog = async (connection: Connection) => {
+    // Fetch the API key for editing
+    try {
+      const apiKey = await getConnectionApiKey(connection.id);
+      setEditingConnection({ ...connection, apiKey } as any);
+    } catch (error) {
+      toast.error('Failed to load connection details');
     }
   };
 
@@ -151,6 +184,13 @@ export function ConnectionsView() {
                     )}
                     Test
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEditDialog(connection)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
                   {activeConnectionId !== connection.id && (
                     <Button
                       variant="outline"
@@ -178,6 +218,15 @@ export function ConnectionsView() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSubmit={handleAddConnection}
+        mode="create"
+      />
+
+      <ConnectionForm
+        open={!!editingConnection}
+        onOpenChange={(open) => !open && setEditingConnection(null)}
+        onSubmit={handleEditConnection}
+        initialData={editingConnection as any}
+        mode="edit"
       />
 
       <ConfirmDialog
