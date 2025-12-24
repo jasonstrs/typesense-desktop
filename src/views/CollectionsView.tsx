@@ -19,7 +19,7 @@ interface CollectionsViewProps {
 }
 
 export function CollectionsView({ onViewChange }: CollectionsViewProps) {
-  const { activeConnectionId, connections, isClientReady } = useConnectionStore();
+  const { activeConnectionId, connections, isClientReady, isReadOnly } = useConnectionStore();
   const { setSelectedCollectionForDocuments } = useNavigation();
   const createCollection = useCreateCollection();
   const deleteCollection = useDeleteCollection();
@@ -32,7 +32,12 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
   const activeConnection = connections.find((c) => c.id === activeConnectionId);
 
   // Fetch collections and aliases
-  const { data: collections, isLoading, error, refetch } = useCollections(isClientReady, activeConnectionId);
+  const {
+    data: collections,
+    isLoading,
+    error,
+    refetch,
+  } = useCollections(isClientReady, activeConnectionId);
   const { data: aliases } = useAliases(isClientReady, activeConnectionId);
 
   const handleCreateCollection = async (data: CollectionCreateSchema) => {
@@ -63,8 +68,15 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
   };
 
   const handleViewDocuments = (collectionName: string) => {
-    setSelectedCollectionForDocuments(collectionName);
-    onViewChange('documents');
+    // Use alias name if one exists, otherwise use collection name
+    const displayName = aliases
+      ? aliases.find((a) => a.collection_name === collectionName)?.name || collectionName
+      : collectionName;
+    setSelectedCollectionForDocuments(displayName);
+    // Small delay to ensure state is set before navigation
+    setTimeout(() => {
+      onViewChange('search');
+    }, 50);
   };
 
   if (!activeConnection) {
@@ -95,7 +107,7 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button onClick={() => setIsCreateDialogOpen(true)} disabled={isReadOnly}>
               <Plus className="w-4 h-4 mr-2" />
               Create Collection
             </Button>
@@ -153,6 +165,7 @@ export function CollectionsView({ onViewChange }: CollectionsViewProps) {
                     onViewSchema={setSelectedCollection}
                     onDelete={openDeleteConfirm}
                     aliasNames={aliasNames}
+                    readOnly={isReadOnly}
                   />
                 </div>
               );

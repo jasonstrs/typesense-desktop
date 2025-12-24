@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,8 +18,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useState } from 'react';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -28,6 +31,7 @@ const connectionSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   url: z.string().url('Must be a valid URL'),
   apiKey: z.string().min(1, 'API Key is required'),
+  readOnly: z.boolean().optional(),
 });
 
 type ConnectionFormData = z.infer<typeof connectionSchema>;
@@ -58,8 +62,21 @@ export function ConnectionForm({
       name: initialData?.name || '',
       url: initialData?.url || '',
       apiKey: initialData?.apiKey || '',
+      readOnly: initialData?.readOnly || false,
     },
   });
+
+  // Reset form values when initialData changes (for edit mode)
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: initialData?.name || '',
+        url: initialData?.url || '',
+        apiKey: initialData?.apiKey || '',
+        readOnly: initialData?.readOnly || false,
+      });
+    }
+  }, [open, initialData, form]);
 
   const handleTestConnection = async () => {
     // Validate form fields first
@@ -153,6 +170,25 @@ export function ConnectionForm({
                     <Input type="password" placeholder="Enter API key" {...field} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="readOnly"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Read-Only Mode</FormLabel>
+                    <FormDescription>
+                      Prevent all write operations (create/delete collections, aliases, and
+                      documents)
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />

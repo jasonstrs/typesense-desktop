@@ -51,6 +51,12 @@ export function useCreateDocument(collectionName: string) {
           query.queryKey[0] === 'documents' &&
           query.queryKey[2] === collectionName
       });
+      // Invalidate search queries for this collection
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'search' &&
+          query.queryKey[2] === collectionName
+      });
       queryClient.invalidateQueries({ queryKey: ['collections'] });
     },
   });
@@ -71,6 +77,12 @@ export function useUpdateDocument(collectionName: string) {
           query.queryKey[0] === 'documents' &&
           query.queryKey[2] === collectionName
       });
+      // Invalidate search queries for this collection
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'search' &&
+          query.queryKey[2] === collectionName
+      });
       queryClient.invalidateQueries({ queryKey: ['collections'] });
     },
   });
@@ -89,6 +101,12 @@ export function useDeleteDocument(collectionName: string) {
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === 'documents' &&
+          query.queryKey[2] === collectionName
+      });
+      // Invalidate search queries for this collection
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'search' &&
           query.queryKey[2] === collectionName
       });
       queryClient.invalidateQueries({ queryKey: ['collections'] });

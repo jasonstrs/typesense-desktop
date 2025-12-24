@@ -18,7 +18,7 @@ fn keyring_set(service: &str, account: &str, password: &str) -> Result<(), Strin
 
 #[tauri::command]
 fn keyring_get(service: &str, account: &str) -> Result<String, String> {
-    println!("Rust: Getting keyring - service: {}, account: {}", service, account);
+    // println!("Rust: Getting keyring - service: {}, account: {}", service, account);
     let entry = Entry::new(service, account).map_err(|e| {
         println!("Rust: Failed to create entry for get: {}", e);
         e.to_string()
@@ -27,7 +27,7 @@ fn keyring_get(service: &str, account: &str) -> Result<String, String> {
         println!("Rust: Failed to get password: {}", e);
         e.to_string()
     })?;
-    println!("Rust: Password retrieved successfully");
+    // println!("Rust: Password retrieved successfully");
     Ok(password)
 }
 
